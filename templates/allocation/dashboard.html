@@ -1,0 +1,467 @@
+{% extends 'base.html' %}
+
+{% block title %}Allocation Dashboard - PLASU Exam System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>
+            <i class="fas fa-users-cog me-2"></i>
+            Allocation Dashboard
+        </h2>
+        <p class="text-muted">Smart allocation engine for exams, students, and invigilators.</p>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Total Allocations
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ total_allocations|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-tasks fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Students Allocated
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ students_allocated|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-user-graduate fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Invigilators Assigned
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ invigilators_assigned|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-user-tie fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Conflicts
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ conflicts|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt me-2"></i>
+                    Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light border">
+                            <div class="card-body text-center">
+                                <i class="fas fa-plus-circle fa-3x text-primary mb-3"></i>
+                                <h6>New Allocation</h6>
+                                <p class="small">Create new exam allocation</p>
+                                <a href="{% url 'allocation:create_allocation' %}" class="btn btn-primary btn-sm">
+                                    Create Allocation
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light border">
+                            <div class="card-body text-center">
+                                <i class="fas fa-magic fa-3x text-success mb-3"></i>
+                                <h6>Auto Allocate</h6>
+                                <p class="small">Smart auto-allocation for exams</p>
+                                <a href="{% url 'allocation:auto_allocate' %}" class="btn btn-success btn-sm">
+                                    Auto Allocate
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light border">
+                            <div class="card-body text-center">
+                                <i class="fas fa-chair fa-3x text-warning mb-3"></i>
+                                <h6>Seating Plans</h6>
+                                <p class="small">View and manage seating plans</p>
+                                <a href="{% url 'allocation:seating_plans' %}" class="btn btn-warning btn-sm">
+                                    View Plans
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light border">
+                            <div class="card-body text-center">
+                                <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                                <h6>Resolve Conflicts</h6>
+                                <p class="small">Manage allocation conflicts</p>
+                                <a href="{% url 'allocation:conflicts' %}" class="btn btn-danger btn-sm">
+                                    View Conflicts
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Allocations -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-history me-2"></i>
+                    Recent Allocations
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Exam</th>
+                                <th>Venue</th>
+                                <th>Students</th>
+                                <th>Invigilators</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for allocation in recent_allocations %}
+                            <tr>
+                                <td>
+                                    <div>
+                                        <span class="badge bg-primary">{{ allocation.exam.course.code }}</span>
+                                        <br>
+                                        <small>{{ allocation.exam.course.name }}</small>
+                                        <br>
+                                        <small class="text-muted">{{ allocation.exam.date|date:"M d, Y" }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ allocation.venue.name }}</span>
+                                    <br>
+                                    <small class="text-muted">Capacity: {{ allocation.venue.capacity }}</small>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <strong>{{ allocation.student_allocations.count }}</strong>
+                                        {% if allocation.exam.enrolled_students %}
+                                            <small class="text-muted ms-1">/ {{ allocation.exam.enrolled_students }}</small>
+                                        {% endif %}
+                                    </div>
+                                    {% if allocation.student_allocations.count > 0 %}
+                                    <div class="progress mt-1" style="height: 4px;">
+                                        <div class="progress-bar" style="width: 75%"></div>
+                                    </div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">{{ allocation.invigilator_assignments.count }}</span>
+                                    <br>
+                                    <small class="text-muted">Assigned</small>
+                                </td>
+                                <td>
+                                    {% if allocation.is_confirmed %}
+                                        <span class="badge bg-success">Confirmed</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ allocation.created_at|timesince }}</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'allocation:allocation_detail' allocation.id %}" class="btn btn-sm btn-info" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'allocation:seating_plan' allocation.id %}" class="btn btn-sm btn-warning" title="Seating Plan">
+                                            <i class="fas fa-chair"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center">No recent allocations</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card shadow mb-3">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Pending Tasks
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">Confirm Allocations</h6>
+                            <small class="badge bg-warning">{{ pending_confirmations|default:"0" }}</small>
+                        </div>
+                        <p class="mb-1">Allocations awaiting confirmation</p>
+                    </a>
+                    
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">Assign Invigilators</h6>
+                            <small class="badge bg-info">{{ pending_invigilators|default:"0" }}</small>
+                        </div>
+                        <p class="mb-1">Exams needing invigilator assignments</p>
+                    </a>
+                    
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">Resolve Conflicts</h6>
+                            <small class="badge bg-danger">{{ active_conflicts|default:"0" }}</small>
+                        </div>
+                        <p class="mb-1">Conflicts requiring resolution</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>
+                    Allocation Statistics
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="allocationChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Allocation Rules -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-cogs me-2"></i>
+                    Allocation Rules Status
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="card bg-light border">
+                            <div class="card-body text-center">
+                                <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                                <h6>Student Separation</h6>
+                                <div class="progress mb-2">
+                                    <div class="progress-bar bg-success" style="width: 85%">85%</div>
+                                </div>
+                                <small class="text-muted">Department-based separation active</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="card bg-light border">
+                            <div class="card-body text-center">
+                                <i class="fas fa-chair fa-2x text-success mb-2"></i>
+                                <h6>Seat Spacing</h6>
+                                <div class="progress mb-2">
+                                    <div class="progress-bar bg-success" style="width: 90%">90%</div>
+                                </div>
+                                <small class="text-muted">2-seat spacing enforced</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="card bg-light border">
+                            <div class="card-body text-center">
+                                <i class="fas fa-user-tie fa-2x text-warning mb-2"></i>
+                                <h6>Invigilator Load</h6>
+                                <div class="progress mb-2">
+                                    <div class="progress-bar bg-warning" style="width: 75%">75%</div>
+                                </div>
+                                <small class="text-muted">Balanced workload distribution</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="card bg-light border">
+                            <div class="card-body text-center">
+                                <i class="fas fa-building fa-2x text-info mb-2"></i>
+                                <h6>Venue Capacity</h6>
+                                <div class="progress mb-2">
+                                    <div class="progress-bar bg-info" style="width: 95%">95%</div>
+                                </div>
+                                <small class="text-muted">Capacity limits respected</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activities -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-history me-2"></i>
+                    Recent Activities
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">
+                                <i class="fas fa-plus-circle text-success me-2"></i>
+                                New allocation created
+                            </h6>
+                            <small>2 hours ago</small>
+                        </div>
+                        <p class="mb-1">CSC201 Final Exam allocated to Lecture Hall A</p>
+                    </div>
+                    
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">
+                                <i class="fas fa-magic text-primary me-2"></i>
+                                Auto-allocation completed
+                            </h6>
+                            <small>5 hours ago</small>
+                        </div>
+                        <p class="mb-1">45 students automatically allocated for MTH101 exam</p>
+                    </div>
+                    
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Allocation confirmed
+                            </h6>
+                            <small>1 day ago</small>
+                        </div>
+                        <p class="mb-1">PHY201 exam allocation confirmed and published</p>
+                    </div>
+                    
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">
+                                <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                                Conflict detected
+                            </h6>
+                            <small>2 days ago</small>
+                        </div>
+                        <p class="mb-1">Time conflict detected between two exams, resolved automatically</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Allocation Statistics Chart
+const ctx = document.getElementById('allocationChart').getContext('2d');
+const allocationChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [{
+            label: 'Allocations',
+            data: [12, 19, 15, 25, 22, 30, 28],
+            borderColor: '#4e73df',
+            backgroundColor: 'rgba(78, 115, 223, 0.1)',
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,552 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ invigilator.get_full_name|default:invigilator.username }} - PLASU Exam System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-user-tie me-2"></i>
+                {{ invigilator.get_full_name|default:invigilator.username }}
+            </h2>
+            <div>
+                <a href="{% url 'invigilators:invigilator_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Back to Invigilators
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Invigilator Overview -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Invigilator Profile
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Name:</strong></td>
+                                <td>{{ invigilator.get_full_name|default:invigilator.username }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Employee ID:</strong></td>
+                                <td>{{ invigilator.employee_id|default:"N/A" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Department:</strong></td>
+                                <td>{{ invigilator.department|default:"Not Assigned" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Designation:</strong></td>
+                                <td>{{ invigilator.designation|default:"N/A" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Email:</strong></td>
+                                <td>{{ invigilator.email }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Phone:</strong></td>
+                                <td>{{ invigilator.phone_number|default:"N/A" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Status:</strong></td>
+                                <td>
+                                    {% if invigilator.is_on_leave %}
+                                        <span class="badge bg-warning">On Leave</span>
+                                    {% elif invigilator.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Inactive</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Joined:</strong></td>
+                                <td>{{ invigilator.date_joined|date:"M d, Y" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                {% if invigilator.qualifications %}
+                <div class="mt-3">
+                    <h6><i class="fas fa-graduation-cap me-2"></i>Qualifications:</h6>
+                    <div class="alert alert-light">
+                        {{ invigilator.qualifications }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if invigilator.experience %}
+                <div class="mt-3">
+                    <h6><i class="fas fa-briefcase me-2"></i>Experience:</h6>
+                    <div class="alert alert-light">
+                        {{ invigilator.experience }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card shadow mb-3">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Performance Summary
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    {% if invigilator.average_rating %}
+                    <div class="text-warning fs-3">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= invigilator.average_rating|floatformat:0 %}
+                                ★
+                            {% else %}
+                                ☆
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <h4>{{ invigilator.average_rating|floatformat:1 }}/5.0</h4>
+                    <p class="text-muted">{{ invigilator.ratings_count|default:"0" }} reviews</p>
+                    {% else %}
+                    <p class="text-muted">No ratings yet</p>
+                    {% endif %}
+                </div>
+                
+                <div class="row text-center">
+                    <div class="col-6 mb-3">
+                        <h4 class="text-primary">{{ invigilator.total_assignments|default:"0" }}</h4>
+                        <small class="text-muted">Total Assignments</small>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <h4 class="text-success">{{ invigilator.completed_assignments|default:"0" }}</h4>
+                        <small class="text-muted">Completed</small>
+                    </div>
+                </div>
+                
+                <div class="progress mb-3">
+                    <div class="progress-bar bg-success" style="width: 75%">
+                        75% Completion Rate
+                    </div>
+                </div>
+                
+                <div class="d-grid">
+                    <a href="{% url 'invigilators:performance_detail' invigilator.id %}" class="btn btn-success">
+                        <i class="fas fa-chart-line me-2"></i>
+                        View Performance Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fas fa-cogs me-2"></i>
+                    Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'invigilators:assign_invigilator' invigilator.id %}" class="btn btn-primary">
+                        <i class="fas fa-calendar-plus me-2"></i>
+                        Assign to Exam
+                    </a>
+                    <a href="{% url 'invigilators:availability_management' invigilator.id %}" class="btn btn-info">
+                        <i class="fas fa-calendar-check me-2"></i>
+                        Manage Availability
+                    </a>
+                    <a href="{% url 'invigilators:add_performance' invigilator.id %}" class="btn btn-success">
+                        <i class="fas fa-star me-2"></i>
+                        Add Performance Review
+                    </a>
+                    <a href="{% url 'invigilators:send_notification' invigilator.id %}" class="btn btn-warning">
+                        <i class="fas fa-bell me-2"></i>
+                        Send Notification
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Current Assignments -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar-alt me-2"></i>
+                    Current Assignments
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if current_assignments %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Exam</th>
+                                <th>Venue</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for assignment in current_assignments %}
+                            <tr>
+                                <td>{{ assignment.exam_allocation.exam.date|date:"M d, Y" }}</td>
+                                <td>
+                                    {{ assignment.exam_allocation.exam.start_time }} - 
+                                    {{ assignment.exam_allocation.exam.end_time }}
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">{{ assignment.exam_allocation.exam.course.code }}</span>
+                                    <br>
+                                    <small>{{ assignment.exam_allocation.exam.course.name }}</small>
+                                </td>
+                                <td>{{ assignment.exam_allocation.venue.name }}</td>
+                                <td>
+                                    <span class="badge bg-{{ assignment.is_primary|yesno:'primary,secondary' }}">
+                                        {{ assignment.get_assignment_type_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if assignment.has_accepted %}
+                                        <span class="badge bg-success">Accepted</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="#" class="btn btn-sm btn-info" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="#" class="btn btn-sm btn-warning" title="Reassign">
+                                            <i class="fas fa-exchange-alt"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <i class="fas fa-calendar-times fa-2x text-muted mb-2"></i>
+                    <p class="text-muted">No current assignments.</p>
+                    <a href="{% url 'invigilators:assign_invigilator' invigilator.id %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus me-2"></i>
+                        Assign to Exam
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Availability Schedule -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar-check me-2"></i>
+                    Availability Schedule
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Current Week Availability</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Day</th>
+                                        <th>Morning</th>
+                                        <th>Afternoon</th>
+                                        <th>Evening</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for day in week_days %}
+                                    <tr>
+                                        <td><strong>{{ day }}</strong></td>
+                                        <td>
+                                            {% if availability_data|get_item:day|get_item:'morning' %}
+                                                <span class="badge bg-success">Available</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Unavailable</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if availability_data|get_item:day|get_item:'afternoon' %}
+                                                <span class="badge bg-success">Available</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Unavailable</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if availability_data|get_item:day|get_item:'evening' %}
+                                                <span class="badge bg-success">Available</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Unavailable</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h6>Leave Schedule</h6>
+                        {% if leave_requests %}
+                        <div class="list-group">
+                            {% for leave in leave_requests %}
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ leave.leave_type|title }}</h6>
+                                    <span class="badge bg-{{ leave.status|yesno:'warning,success,danger' }}">
+                                        {{ leave.get_status_display }}
+                                    </span>
+                                </div>
+                                <p class="mb-1">{{ leave.start_date|date:"M d, Y" }} - {{ leave.end_date|date:"M d, Y" }}</p>
+                                {% if leave.reason %}
+                                <p class="mb-1"><small>{{ leave.reason }}</small></p>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center">
+                            <p class="text-muted">No leave requests</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <a href="{% url 'invigilators:availability_management' invigilator.id %}" class="btn btn-success">
+                        <i class="fas fa-edit me-2"></i>
+                        Manage Availability
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Performance History -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>
+                    Performance History
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if performance_records %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Exam</th>
+                                <th>Rating</th>
+                                <th>Punctuality</th>
+                                <th>Professionalism</th>
+                                <th>Comments</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for performance in performance_records %}
+                            <tr>
+                                <td>{{ performance.date|date:"M d, Y" }}</td>
+                                <td>
+                                    <span class="badge bg-primary">{{ performance.exam.course.code }}</span>
+                                    <br>
+                                    <small>{{ performance.exam.course.name }}</small>
+                                </td>
+                                <td>
+                                    <div class="text-warning">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= performance.overall_rating %}
+                                                ★
+                                            {% else %}
+                                                ☆
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ performance.punctuality|yesno:'success,warning,danger' }}">
+                                        {{ performance.get_punctuality_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ performance.professionalism|yesno:'success,warning,danger' }}">
+                                        {{ performance.get_professionalism_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="text-truncate d-inline-block" style="max-width: 200px;">
+                                        {{ performance.comments|default:"No comments" }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <i class="fas fa-chart-line fa-2x text-muted mb-2"></i>
+                    <p class="text-muted">No performance records yet.</p>
+                    <a href="{% url 'invigilators:add_performance' invigilator.id %}" class="btn btn-success btn-sm">
+                        <i class="fas fa-plus me-2"></i>
+                        Add Performance Review
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Training Records -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-graduation-cap me-2"></i>
+                    Training Records
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if training_records %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Training Name</th>
+                                <th>Type</th>
+                                <th>Date</th>
+                                <th>Duration</th>
+                                <th>Status</th>
+                                <th>Certificate</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for training in training_records %}
+                            <tr>
+                                <td><strong>{{ training.name }}</strong></td>
+                                <td>
+                                    <span class="badge bg-info">{{ training.get_training_type_display }}</span>
+                                </td>
+                                <td>{{ training.date|date:"M d, Y" }}</td>
+                                <td>{{ training.duration_hours }} hours</td>
+                                <td>
+                                    <span class="badge bg-{{ training.status|yesno:'success,warning,danger' }}">
+                                        {{ training.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if training.certificate_file %}
+                                        <a href="{{ training.certificate_file.url }}" class="btn btn-sm btn-info" target="_blank">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <i class="fas fa-graduation-cap fa-2x text-muted mb-2"></i>
+                    <p class="text-muted">No training records yet.</p>
+                    <a href="{% url 'invigilators:add_training' invigilator.id %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus me-2"></i>
+                        Add Training Record
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notifications -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-bell me-2"></i>
+                    Recent Notifications
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if notifications %}
+                <div class="list-group">
+                    {% for notification in notifications %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">
+                                <i class="fas fa-{{ notification.icon|default:'info-circle' }} text-{{ notification.color|default:'primary' }} me-2"></i>
+                                {{ notification.title }}
+                            </h6>
+                            <small>{{ notification.created_at|timesince }} ago</small>
+                        </div>
+                        <p class="mb-1">{{ notification.message }}</p>
+                        {% if notification.is_read %}
+                        <small class="text-muted">Read</small>
+                        {% else %}
+                        <span class="badge bg-primary">New</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <i class="fas fa-bell-slash fa-2x text-muted mb-2"></i>
+                    <p class="text-muted">No notifications</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

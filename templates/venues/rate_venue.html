@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Rate Venue - {{ venue.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">Rate Venue</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'venues:venue_list' %}">Venues</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'venues:venue_detail' venue.id %}">{{ venue.name }}</a></li>
+                        <li class="breadcrumb-item active">Rate Venue</li>
+                    </ol>
+                </nav>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card shadow">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-star me-2"></i>
+                                Rate {{ venue.name }}
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-4">
+                                <h6>Venue Details</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Name:</strong> {{ venue.name }}</p>
+                                        <p><strong>Code:</strong> {{ venue.code }}</p>
+                                        <p><strong>Type:</strong> {{ venue.get_venue_type_display }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Building:</strong> {{ venue.building|default:"Not specified" }}</p>
+                                        <p><strong>Floor:</strong> {{ venue.floor|default:"Not specified" }}</p>
+                                        <p><strong>Capacity:</strong> {{ venue.capacity }} (Exam: {{ venue.exam_capacity }})</p>
+                                    </div>
+                                </div>
+                                {% if venue.description %}
+                                <p><strong>Description:</strong> {{ venue.description }}</p>
+                                {% endif %}
+                            </div>
+
+                            <form method="post">
+                                {% csrf_token %}
+                                
+                                <div class="mb-4">
+                                    <label for="id_rating" class="form-label fw-bold">
+                                        <i class="fas fa-star me-2"></i>Your Rating
+                                    </label>
+                                    <div class="form-check">
+                                        {% for choice in form.rating.field.choices %}
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="rating" 
+                                                   id="id_rating_{{ choice.0 }}" value="{{ choice.0 }}"
+                                                   {% if form.rating.value == choice.0 %}checked{% endif %}>
+                                            <label class="form-check-label" for="id_rating_{{ choice.0 }}">
+                                                {% for i in choice.0 %}<i class="fas fa-star text-warning"></i>{% endfor %}
+                                                {% for i in "5"|make_list %}{% if forloop.counter > choice.0 %}<i class="far fa-star text-muted"></i>{% endif %}{% endfor %}
+                                                {{ choice.1 }}
+                                            </label>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% if form.rating.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.rating.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-4">
+                                    <label for="{{ form.comment.id_for_label }}" class="form-label fw-bold">
+                                        <i class="fas fa-comment me-2"></i>Your Review (Optional)
+                                    </label>
+                                    <textarea name="comment" id="{{ form.comment.id_for_label }}" class="form-control" rows="4" placeholder="Share your experience with this venue...">{{ form.comment.value|default:"" }}</textarea>
+                                    {% if form.comment.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.comment.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'venues:venue_detail' venue.id %}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>Back to Venue
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Submit Rating
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card shadow">
+                        <div class="card-header bg-info text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-info-circle me-2"></i>Rating Guidelines
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <h6>Rating Scale:</h6>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-star text-warning"></i> <i class="fas fa-star text-warning"></i> <i class="fas fa-star text-warning"></i> <i class="fas fa-star text-warning"></i> <i class="fas fa-star text-warning"></i> (5) - Excellent</li>
+                                    <li><i class="fas fa-star text-warning"></i> <i class="fas fa-star text-warning"></i> <i class="fas fa-star text-warning"></i> <i class="fas fa-star text-warning"></i> <i class="far fa-star text-muted"></i> (4) - Very Good</li>
+                                    <li><i class="fas fa-star text-warning"></i> <i class="fas fa-star text-warning"></i> <i class="fas fa-star text-warning"></i> <i class="far fa-star text-muted"></i> <i class="far fa-star text-muted"></i> (3) - Good</li>
+                                    <li><i class="fas fa-star text-warning"></i> <i class="fas fa-star text-warning"></i> <i class="far fa-star text-muted"></i> <i class="far fa-star text-muted"></i> <i class="far fa-star text-muted"></i> (2) - Fair</li>
+                                    <li><i class="fas fa-star text-warning"></i> <i class="far fa-star text-muted"></i> <i class="far fa-star text-muted"></i> <i class="far fa-star text-muted"></i> <i class="far fa-star text-muted"></i> (1) - Poor</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6>Consider:</h6>
+                                <ul class="small">
+                                    <li>Venue cleanliness and maintenance</li>
+                                    <li>Availability of facilities</li>
+                                    <li>Comfort and space</li>
+                                    <li>Lighting and ventilation</li>
+                                    <li>Overall experience</li>
+                                </ul>
+                            </div>
+
+                            <div class="alert alert-info small">
+                                <i class="fas fa-lightbulb me-2"></i>
+                                <strong>Tip:</strong> Be honest and specific in your review to help others make informed decisions.
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if venue.ratings.exists %}
+                    <div class="card shadow mt-3">
+                        <div class="card-header bg-success text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-chart-bar me-2"></i>Current Rating
+                            </h6>
+                        </div>
+                        <div class="card-body text-center">
+                            <h3 class="text-success">{{ venue.average_rating|floatformat:1 }}/5.0</h3>
+                            <p class="text-muted mb-0">{{ venue.ratings.count }} review{{ venue.ratings.count|pluralize }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

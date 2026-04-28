@@ -1,0 +1,300 @@
+{% extends 'base.html' %}
+
+{% block title %}My Courses - PLASU Exam System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>
+            <i class="fas fa-book me-2"></i>
+            My Enrolled Courses
+        </h2>
+        <p class="text-muted">View all courses you are currently enrolled in for this academic session.</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    Current Enrollments
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if enrollments %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Course Code</th>
+                                <th>Course Name</th>
+                                <th>Department</th>
+                                <th>Level</th>
+                                <th>Semester</th>
+                                <th>Credit Hours</th>
+                                <th>Instructor</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for enrollment in enrollments %}
+                            <tr>
+                                <td>
+                                    <span class="badge bg-primary">{{ enrollment.course.code }}</span>
+                                </td>
+                                <td>
+                                    <strong>{{ enrollment.course.name }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ enrollment.course.department.name }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-warning">{{ enrollment.course.level }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">{{ enrollment.course.get_semester_display }}</span>
+                                </td>
+                                <td>{{ enrollment.course.credit_hours }}</td>
+                                <td>
+                                    {% if enrollment.course.instructor %}
+                                        {{ enrollment.course.instructor.get_full_name|default:enrollment.course.instructor.username }}
+                                    {% else %}
+                                        <span class="text-muted">Not Assigned</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="#" class="btn btn-sm btn-info" title="View Course Details">
+                                            <i class="fas fa-info-circle"></i>
+                                        </a>
+                                        <a href="#" class="btn btn-sm btn-success" title="View Exams">
+                                            <i class="fas fa-clipboard-list"></i>
+                                        </a>
+                                        <a href="#" class="btn btn-sm btn-warning" title="View Materials">
+                                            <i class="fas fa-folder-open"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                    <h5>No Courses Enrolled</h5>
+                    <p class="text-muted">You haven't been enrolled in any courses for this academic session.</p>
+                    <p class="text-muted">Please contact your department administrator for course enrollment.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Course Statistics -->
+<div class="row mt-4">
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Total Courses
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ enrollments.count }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-book fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Total Credits
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ total_credits|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-award fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Current Level
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ current_level|default:"N/A" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-layer-group fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            GPA
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ gpa|default:"N/A" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upcoming Exams for Enrolled Courses -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar-alt me-2"></i>
+                    Upcoming Exams
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if upcoming_exams %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Course</th>
+                                <th>Venue</th>
+                                <th>Exam Type</th>
+                                <th>Days Remaining</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for exam in upcoming_exams %}
+                            <tr>
+                                <td>{{ exam.date|date:"M d, Y" }}</td>
+                                <td>{{ exam.start_time }} - {{ exam.end_time }}</td>
+                                <td>
+                                    <span class="badge bg-primary">{{ exam.course.code }}</span>
+                                    <br>
+                                    <small>{{ exam.course.name }}</small>
+                                </td>
+                                <td>{{ exam.allocation.venue.name|default:"TBA" }}</td>
+                                <td>
+                                    <span class="badge bg-info">{{ exam.get_exam_type_display }}</span>
+                                </td>
+                                <td>
+                                    {% if exam.days_remaining > 0 %}
+                                        <span class="badge bg-warning">{{ exam.days_remaining }} days</span>
+                                    {% elif exam.days_remaining == 0 %}
+                                        <span class="badge bg-danger">Today</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Past</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <i class="fas fa-calendar-times fa-2x text-muted mb-2"></i>
+                    <p class="text-muted">No upcoming exams scheduled for your enrolled courses.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Academic Progress -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>
+                    Academic Progress
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Current Session Progress</h6>
+                        <div class="progress mb-3">
+                            <div class="progress-bar bg-success" style="width: 65%">65% Complete</div>
+                        </div>
+                        <p class="text-muted small">Academic Session: 2023/2024</p>
+                        <p class="text-muted small">Current Semester: Second Semester</p>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h6>Course Completion Status</h6>
+                        <canvas id="progressChart" width="200" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Course Progress Chart
+const progressCtx = document.getElementById('progressChart').getContext('2d');
+const progressChart = new Chart(progressCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Completed', 'In Progress', 'Not Started'],
+        datasets: [{
+            data: [3, 4, 1],
+            backgroundColor: ['#1cc88a', '#36b9cc', '#e74a3b']
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

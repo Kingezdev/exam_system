@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+
+{% block title %}Faculties - PLASU Exam System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-university me-2"></i>
+                Faculties
+            </h2>
+            <a href="{% url 'academics:faculty_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>
+                Add Faculty
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    All Faculties
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if faculties %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Code</th>
+                                <th>Dean</th>
+                                <th>Description</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for faculty in faculties %}
+                            <tr>
+                                <td>
+                                    <strong>{{ faculty.name }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ faculty.code }}</span>
+                                </td>
+                                <td>
+                                    {% if faculty.dean %}
+                                        {{ faculty.dean.get_full_name|default:faculty.dean.username }}
+                                    {% else %}
+                                        <span class="text-muted">Not Assigned</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="text-truncate d-inline-block" style="max-width: 200px;">
+                                        {{ faculty.description|default:"No description" }}
+                                    </span>
+                                </td>
+                                <td>{{ faculty.created_at|date:"M d, Y" }}</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'academics:department_list' %}?faculty={{ faculty.id }}" class="btn btn-sm btn-info" title="View Departments">
+                                            <i class="fas fa-building"></i>
+                                        </a>
+                                        <a href="{% url 'academics:faculty_update' faculty.id %}" class="btn btn-sm btn-warning" title="Edit Faculty">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-danger" title="Delete Faculty" data-bs-toggle="modal" data-bs-target="#deleteModal{{ faculty.id }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-university fa-3x text-muted mb-3"></i>
+                    <h5>No Faculties Found</h5>
+                    <p class="text-muted">Start by adding your first faculty to the system.</p>
+                    <a href="{% url 'academics:faculty_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>
+                        Add First Faculty
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mt-4">
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Total Faculties
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ faculties.count }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-university fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Total Departments
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ total_departments|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-building fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Total Courses
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ total_courses|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-book fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Active Students
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ total_students|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-user-graduate fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modals -->
+{% for faculty in faculties %}
+<div class="modal fade" id="deleteModal{{ faculty.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ faculty.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel{{ faculty.id }}">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Confirm Deletion
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> This action cannot be undone.
+                </div>
+                
+                <p>Are you sure you want to delete the following faculty?</p>
+                
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h6 class="card-title">{{ faculty.name }}</h6>
+                        <p class="card-text mb-0">
+                            <strong>Code:</strong> {{ faculty.code }}<br>
+                            <strong>Dean:</strong> 
+                            {% if faculty.dean %}
+                                {{ faculty.dean.get_full_name|default:faculty.dean.username }}
+                            {% else %}
+                                Not Assigned
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                <p class="text-muted small mt-3">
+                    This will also delete all departments and courses under this faculty.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <form method="post" action="{% url 'academics:faculty_delete' faculty.id %}">
+                    {% csrf_token %}
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>
+                        Delete Faculty
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}

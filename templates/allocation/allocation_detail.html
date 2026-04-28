@@ -1,0 +1,484 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ allocation.exam.course.code }} Allocation - PLASU Exam System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-tasks me-2"></i>
+                {{ allocation.exam.course.code }} - {{ allocation.exam.get_exam_type_display }}
+            </h2>
+            <div>
+                <a href="{% url 'allocation:allocation_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Back to Allocations
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Allocation Overview -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Allocation Overview
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Course:</strong></td>
+                                <td>{{ allocation.exam.course.code }} - {{ allocation.exam.course.name }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Department:</strong></td>
+                                <td>{{ allocation.exam.course.department.name }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Exam Type:</strong></td>
+                                <td>
+                                    <span class="badge bg-{{ allocation.exam.exam_type|yesno:'primary,secondary,warning,danger' }}">
+                                        {{ allocation.exam.get_exam_type_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Date & Time:</strong></td>
+                                <td>{{ allocation.exam.date|date:"l, F d, Y" }} {{ allocation.exam.start_time }} - {{ allocation.exam.end_time }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Venue:</strong></td>
+                                <td>{{ allocation.venue.name }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Venue Capacity:</strong></td>
+                                <td>{{ allocation.venue.capacity }} students</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Status:</strong></td>
+                                <td>
+                                    {% if allocation.is_completed %}
+                                        <span class="badge bg-success">Completed</span>
+                                    {% elif allocation.is_confirmed %}
+                                        <span class="badge bg-info">Confirmed</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Created:</strong></td>
+                                <td>{{ allocation.created_at|date:"M d, Y H:i" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                {% if allocation.notes %}
+                <div class="mt-3">
+                    <h6><i class="fas fa-sticky-note me-2"></i>Notes:</h6>
+                    <div class="alert alert-light">
+                        {{ allocation.notes }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card shadow mb-3">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Allocation Statistics
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 mb-3">
+                        <h4 class="text-primary">{{ allocation.student_allocations.count }}</h4>
+                        <small class="text-muted">Students Allocated</small>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <h4 class="text-success">{{ allocation.invigilator_assignments.count }}</h4>
+                        <small class="text-muted">Invigilators Assigned</small>
+                    </div>
+                </div>
+                
+                <div class="progress mb-3">
+                    {% if allocation.exam.enrolled_students > 0 %}
+                        {% with percentage=allocation.student_allocations.count|mul:100|div:allocation.exam.enrolled_students %}
+                        <div class="progress-bar bg-success" style="width: 75%">
+                            {{ percentage|default:0 }}% Complete
+                        </div>
+                        {% endwith %}
+                    {% else %}
+                        <div class="progress-bar bg-secondary" style="width: 0%">
+                            No Students Enrolled
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h5 class="text-info">{{ allocation.venue.capacity }}</h5>
+                        <small class="text-muted">Venue Capacity</small>
+                    </div>
+                    <div class="col-6">
+                        <h5 class="text-warning">{{ allocation.venue.capacity|sub:allocation.student_allocations.count }}</h5>
+                        <small class="text-muted">Seats Available</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fas fa-cogs me-2"></i>
+                    Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'allocation:seating_plan' allocation.id %}" class="btn btn-warning">
+                        <i class="fas fa-chair me-2"></i>
+                        View Seating Plan
+                    </a>
+                    <a href="{% url 'allocation:auto_allocate_students' allocation.id %}" class="btn btn-primary">
+                        <i class="fas fa-magic me-2"></i>
+                        Auto Allocate Students
+                    </a>
+                    <a href="{% url 'allocation:assign_invigilators' allocation.id %}" class="btn btn-info">
+                        <i class="fas fa-user-tie me-2"></i>
+                        Assign Invigilators
+                    </a>
+                    {% if not allocation.is_confirmed %}
+                    <button class="btn btn-success" onclick="confirmAllocation()">
+                        <i class="fas fa-check me-2"></i>
+                        Confirm Allocation
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Student Allocations -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-graduate me-2"></i>
+                    Student Allocations ({{ allocation.student_allocations.count }})
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if allocation.student_allocations.exists %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Name</th>
+                                <th>Department</th>
+                                <th>Seat Number</th>
+                                <th>Row</th>
+                                <th>Column</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student_alloc in allocation.student_allocations.all %}
+                            <tr>
+                                <td>
+                                    <span class="badge bg-info">{{ student_alloc.student.student_id|default:"N/A" }}</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px; font-size: 12px;">
+                                            {{ student_alloc.student.first_name.0|default:student_alloc.student.username.0|upper }}{{ student_alloc.student.last_name.0|default:"" }}
+                                        </div>
+                                        <div>
+                                            <strong>{{ student_alloc.student.get_full_name|default:student_alloc.student.username }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ student_alloc.student.email }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ student_alloc.student.department.name|default:"N/A" }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">{{ student_alloc.seat_number }}</span>
+                                </td>
+                                <td>{{ student_alloc.row_number|default:"-" }}</td>
+                                <td>{{ student_alloc.column_number|default:"-" }}</td>
+                                <td>
+                                    <span class="badge bg-success">Allocated</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <i class="fas fa-users fa-2x text-muted mb-2"></i>
+                    <p class="text-muted">No students allocated yet.</p>
+                    <a href="{% url 'allocation:auto_allocate_students' allocation.id %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-magic me-2"></i>
+                        Auto Allocate Students
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Invigilator Assignments -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-tie me-2"></i>
+                    Invigilator Assignments ({{ allocation.invigilator_assignments.count }})
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if allocation.invigilator_assignments.exists %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Invigilator</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Assigned At</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for invigilator in allocation.invigilator_assignments.all %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px; font-size: 12px;">
+                                            {{ invigilator.invigilator.first_name.0|default:invigilator.invigilator.username.0|upper }}{{ invigilator.invigilator.last_name.0|default:"" }}
+                                        </div>
+                                        <div>
+                                            <strong>{{ invigilator.invigilator.get_full_name|default:invigilator.invigilator.username }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ invigilator.invigilator.email }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ invigilator.is_primary|yesno:'primary,secondary' }}">
+                                        {{ invigilator.get_assignment_type_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if invigilator.has_accepted %}
+                                        <span class="badge bg-success">Accepted</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ invigilator.assigned_at|date:"M d, Y H:i" }}</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="#" class="btn btn-sm btn-info" title="View Profile">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="#" class="btn btn-sm btn-warning" title="Reassign">
+                                            <i class="fas fa-exchange-alt"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <i class="fas fa-user-tie fa-2x text-muted mb-2"></i>
+                    <p class="text-muted">No invigilators assigned yet.</p>
+                    <a href="{% url 'allocation:assign_invigilators' allocation.id %}" class="btn btn-success btn-sm">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Assign Invigilators
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Seating Plan Preview -->
+{% if allocation.seating_plan %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fas fa-chair me-2"></i>
+                    Seating Plan Preview
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <h6>{{ allocation.venue.name }} - Layout</h6>
+                    <p class="text-muted">{{ allocation.seating_plan.rows }} rows × {{ allocation.seating_plan.columns }} columns</p>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-bordered text-center">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                {% for col in allocation.seating_plan.columns|make_list %}
+                                <th>{{ col }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in allocation.seating_plan.rows|make_list %}
+                            <tr>
+                                <th>{{ row }}</th>
+                                {% for col in allocation.seating_plan.columns|make_list %}
+                                <td class="{% if row == 1 or col == 1 %}table-warning{% else %}table-light{% endif %}">
+                                    {% if allocation.student_allocations.filter(row_number=row, column_number=col).exists %}
+                                        {% with student=allocation.student_allocations.get(row_number=row, column_number=col) %}
+                                        <div class="seat-allocated">
+                                            {{ student.seat_number }}
+                                            <br>
+                                            <small class="text-muted">{{ student.student.student_id|default:"" }}</small>
+                                        </div>
+                                        {% endwith %}
+                                    {% else %}
+                                        <div class="seat-empty">
+                                            {{ row }}-{{ col }}
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="mt-3">
+                    <a href="{% url 'allocation:seating_plan' allocation.id %}" class="btn btn-warning">
+                        <i class="fas fa-expand me-2"></i>
+                        View Full Seating Plan
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Activity Log -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-history me-2"></i>
+                    Activity Log
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">
+                                <i class="fas fa-plus-circle text-success me-2"></i>
+                                Allocation Created
+                            </h6>
+                            <small>{{ allocation.created_at|timesince }} ago</small>
+                        </div>
+                        <p class="mb-1">Allocation was created by {{ allocation.created_by.get_full_name|default:allocation.created_by.username }}</p>
+                    </div>
+                    
+                    {% for log in allocation.logs.all %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">
+                                <i class="fas fa-{{ log.icon|default:'info-circle' }} text-{{ log.color|default:'primary' }} me-2"></i>
+                                {{ log.get_action_type_display }}
+                            </h6>
+                            <small>{{ log.timestamp|timesince }} ago</small>
+                        </div>
+                        <p class="mb-1">{{ log.description }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmAllocation() {
+    if (confirm('Are you sure you want to confirm this allocation? This will publish the seating plan and notify students.')) {
+        // Show loading indicator
+        const indicator = document.createElement('div');
+        indicator.className = 'alert alert-info position-fixed top-0 end-0 m-3';
+        indicator.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Confirming allocation...';
+        document.body.appendChild(indicator);
+        
+        setTimeout(() => {
+            indicator.remove();
+            alert('Allocation would be confirmed here');
+            location.reload();
+        }, 2000);
+    }
+}
+
+// Add custom styles for seating plan
+const style = document.createElement('style');
+style.textContent = `
+    .seat-allocated {
+        background-color: #d4edda;
+        border: 2px solid #28a745;
+        border-radius: 4px;
+        padding: 4px;
+        font-weight: bold;
+        font-size: 12px;
+    }
+    .seat-empty {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 4px;
+        font-size: 11px;
+        color: #6c757d;
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

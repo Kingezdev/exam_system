@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Upload Image - {{ venue.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">Upload Venue Image</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'venues:venue_list' %}">Venues</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'venues:venue_detail' venue.id %}">{{ venue.name }}</a></li>
+                        <li class="breadcrumb-item active">Upload Image</li>
+                    </ol>
+                </nav>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card shadow">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-camera me-2"></i>
+                                Upload Image for {{ venue.name }}
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-4">
+                                <h6>Venue Details</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Name:</strong> {{ venue.name }}</p>
+                                        <p><strong>Code:</strong> {{ venue.code }}</p>
+                                        <p><strong>Type:</strong> {{ venue.get_venue_type_display }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Building:</strong> {{ venue.building|default:"Not specified" }}</p>
+                                        <p><strong>Floor:</strong> {{ venue.floor|default:"Not specified" }}</p>
+                                        <p><strong>Capacity:</strong> {{ venue.capacity }} (Exam: {{ venue.exam_capacity }})</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% if venue.images.exists %}
+                            <div class="mb-4">
+                                <h6>Current Images ({{ venue.images.count }})</h6>
+                                <div class="row">
+                                    {% for image in venue.images.all %}
+                                    <div class="col-md-4 mb-3">
+                                        <div class="card">
+                                            <img src="{{ image.image.url }}" class="card-img-top" alt="{{ image.caption|default:venue.name }}" style="height: 150px; object-fit: cover;">
+                                            <div class="card-body p-2">
+                                                <small class="text-muted">{{ image.caption|default:"No caption" }}</small>
+                                                {% if image.is_primary %}
+                                                <span class="badge bg-primary float-end">Primary</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <form method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.image.id_for_label }}" class="form-label fw-bold">
+                                        <i class="fas fa-image me-2"></i>Select Image
+                                    </label>
+                                    <input type="file" name="image" id="{{ form.image.id_for_label }}" class="form-control" accept="image/*" required>
+                                    {% if form.image.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.image.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                    <div class="form-text">
+                                        Supported formats: JPG, PNG, GIF. Maximum file size: 5MB.
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label for="{{ form.caption.id_for_label }}" class="form-label fw-bold">
+                                        <i class="fas fa-comment me-2"></i>Caption (Optional)
+                                    </label>
+                                    <textarea name="caption" id="{{ form.caption.id_for_label }}" class="form-control" rows="3" placeholder="Add a caption for this image...">{{ form.caption.value|default:"" }}</textarea>
+                                    {% if form.caption.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.caption.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input type="checkbox" name="is_primary" id="{{ form.is_primary.id_for_label }}" class="form-check-input" {% if form.is_primary.value %}checked{% endif %}>
+                                        <label for="{{ form.is_primary.id_for_label }}" class="form-check-label">
+                                            <i class="fas fa-star me-2"></i>Set as primary image
+                                        </label>
+                                        {% if form.is_primary.errors %}
+                                        <div class="text-danger mt-1">
+                                            {% for error in form.is_primary.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                        <div class="form-text">
+                                            The primary image will be displayed prominently in venue listings.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'venues:venue_detail' venue.id %}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>Back to Venue
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-upload me-2"></i>Upload Image
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card shadow">
+                        <div class="card-header bg-info text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-info-circle me-2"></i>Upload Guidelines
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <h6>Image Requirements:</h6>
+                                <ul class="small">
+                                    <li>High quality, clear images</li>
+                                    <li>Good lighting conditions</li>
+                                    <li>Show the venue space clearly</li>
+                                    <li>Include seating arrangement if possible</li>
+                                    <li>Avoid blurry or distorted images</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6>Recommended Shots:</h6>
+                                <ul class="small">
+                                    <li>Overall venue view</li>
+                                    <li>Seating arrangement</li>
+                                    <li>Facilities (projector, whiteboard, etc.)</li>
+                                    <li>Entrance and exterior</li>
+                                    <li>Special features</li>
+                                </ul>
+                            </div>
+
+                            <div class="mb-3">
+                                <h6>File Specifications:</h6>
+                                <ul class="small">
+                                    <li>Format: JPG, PNG, GIF</li>
+                                    <li>Maximum size: 5MB</li>
+                                    <li>Recommended resolution: 1920x1080</li>
+                                    <li>Aspect ratio: 16:9 or 4:3</li>
+                                </ul>
+                            </div>
+
+                            <div class="alert alert-info small">
+                                <i class="fas fa-lightbulb me-2"></i>
+                                <strong>Tip:</strong> The first image uploaded will automatically be set as primary unless you specify otherwise.
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if venue.images.exists %}
+                    <div class="card shadow mt-3">
+                        <div class="card-header bg-success text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-images me-2"></i>Image Statistics
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row text-center">
+                                <div class="col-6">
+                                    <h4 class="text-primary">{{ venue.images.count }}</h4>
+                                    <small class="text-muted">Total Images</small>
+                                </div>
+                                <div class="col-6">
+                                    <h4 class="text-success">{{ primary_image_count }}</h4>
+                                    <small class="text-muted">Primary</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

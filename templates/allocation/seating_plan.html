@@ -1,0 +1,604 @@
+{% extends 'base.html' %}
+
+{% block title %}Seating Plan - PLASU Exam System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-chair me-2"></i>
+                Seating Plan
+            </h2>
+            <div>
+                <a href="{% url 'allocation:allocation_detail' allocation.id %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Back to Allocation
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Seating Plan Information -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Seating Plan Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Exam:</strong></td>
+                                <td>{{ allocation.exam.course.code }} - {{ allocation.exam.get_exam_type_display }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Date:</strong></td>
+                                <td>{{ allocation.exam.date|date:"l, F d, Y" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Time:</strong></td>
+                                <td>{{ allocation.exam.start_time }} - {{ allocation.exam.end_time }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-3">
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Venue:</strong></td>
+                                <td>{{ allocation.venue.name }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Layout:</strong></td>
+                                <td>{{ seating_plan.rows }} × {{ seating_plan.columns }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Total Seats:</strong></td>
+                                <td>{{ seating_plan.rows|mul:seating_plan.columns }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-3">
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Allocated:</strong></td>
+                                <td>{{ allocation.student_allocations.count }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Available:</strong></td>
+                                <td>{{ seating_plan.rows|mul:seating_plan.columns|sub:allocation.student_allocations.count }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Utilization:</strong></td>
+                                <td>
+                                    {% with utilization=allocation.student_allocations.count|mul:100|div:seating_plan.rows|div:seating_plan.columns %}
+                                    {{ utilization|floatformat:1 }}%
+                                    {% endwith %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-3">
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Spacing:</strong></td>
+                                <td>{{ seating_plan.seat_spacing }} seats</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Department Sep:</strong></td>
+                                <td>{{ seating_plan.department_separation|yesno:"Enabled,Disabled" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Created:</strong></td>
+                                <td>{{ seating_plan.created_at|date:"M d, Y" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Seating Plan Controls -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fas fa-cogs me-2"></i>
+                    Seating Controls
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6>View Options</h6>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-outline-primary btn-sm active" onclick="toggleView('standard')">
+                                <i class="fas fa-th me-1"></i>Standard
+                            </button>
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="toggleView('department')">
+                                <i class="fas fa-university me-1"></i>Department
+                            </button>
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="toggleView('seat')">
+                                <i class="fas fa-chair me-1"></i>Seat Only
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <h6>Actions</h6>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-success btn-sm" onclick="regeneratePlan()">
+                                <i class="fas fa-sync me-1"></i>Regenerate
+                            </button>
+                            <button type="button" class="btn btn-info btn-sm" onclick="printPlan()">
+                                <i class="fas fa-print me-1"></i>Print
+                            </button>
+                            <button type="button" class="btn btn-warning btn-sm" onclick="exportPlan()">
+                                <i class="fas fa-download me-1"></i>Export
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <h6>Statistics</h6>
+                        <div class="progress mb-2">
+                            <div class="progress-bar bg-success" style="width: 75%">75% Filled</div>
+                        </div>
+                        <small class="text-muted">{{ allocation.student_allocations.count }} of {{ seating_plan.rows|mul:seating_plan.columns }} seats occupied</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Seating Plan Grid -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chair me-2"></i>
+                    Seating Arrangement
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered seating-plan" id="seatingGrid">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                {% for col in seating_plan.columns|make_list %}
+                                <th class="text-center">{{ col }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in seating_plan.rows|make_list %}
+                            <tr>
+                                <th class="text-center">{{ row }}</th>
+                                {% for col in seating_plan.columns|make_list %}
+                                <td class="seat-cell" data-row="{{ row }}" data-col="{{ col }}">
+                                    {% if allocation.student_allocations.filter(row_number=row, column_number=col).exists %}
+                                        {% with student=allocation.student_allocations.get(row_number=row, column_number=col) %}
+                                        <div class="seat-allocated" data-department="{{ student.student.department.name|default:'Unknown' }}">
+                                            <div class="seat-number">{{ student.seat_number }}</div>
+                                            <div class="student-id">{{ student.student.student_id|default:"" }}</div>
+                                            {% if student.student.first_name %}
+                                            <div class="student-name">{{ student.student.first_name }} {{ student.student.last_name }}</div>
+                                            {% endif %}
+                                        </div>
+                                        {% endwith %}
+                                    {% else %}
+                                        <div class="seat-empty" data-row="{{ row }}" data-col="{{ col }}">
+                                            <div class="seat-position">{{ row }}-{{ col }}</div>
+                                            <div class="seat-status">Empty</div>
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Legend -->
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <h6>Legend</h6>
+                        <div class="d-flex flex-wrap gap-3">
+                            <div class="d-flex align-items-center">
+                                <div class="seat-allocated-mini me-2"></div>
+                                <span>Allocated Seat</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="seat-empty-mini me-2"></div>
+                                <span>Empty Seat</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="seat-aisle-mini me-2"></div>
+                                <span>Aisle</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Department Colors</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            <div class="d-flex align-items-center">
+                                <div class="dept-color cs-mini me-2"></div>
+                                <span>Computer Science</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="dept-color math-mini me-2"></div>
+                                <span>Mathematics</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="dept-color physics-mini me-2"></div>
+                                <span>Physics</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Student List by Department -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-users me-2"></i>
+                    Student Allocation Summary
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for department, students in students_by_department.items %}
+                    <div class="col-md-4 mb-3">
+                        <div class="card border-light">
+                            <div class="card-header">
+                                <h6 class="mb-0">{{ department }}</h6>
+                                <span class="badge bg-primary">{{ students.count }} students</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="list-group list-group-flush">
+                                    {% for student in students %}
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>{{ student.seat_number }}</strong>
+                                            <br>
+                                            <small>{{ student.student.get_full_name|default:student.student.username }}</small>
+                                        </div>
+                                        <small class="text-muted">{{ student.student.student_id|default:"" }}</small>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Allocation Rules Applied -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-cogs me-2"></i>
+                    Allocation Rules Applied
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-check-circle text-success me-2"></i>Applied Rules</h6>
+                        <ul>
+                            <li>Department separation enforced</li>
+                            <li>{{ seating_plan.seat_spacing }}-seat spacing maintained</li>
+                            <li>Sequential seat numbering</li>
+                            <li>Front-to-back filling prioritized</li>
+                            <li>Aisle access maintained</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-info-circle text-info me-2"></i>Configuration</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Seat Spacing:</strong></td>
+                                <td>{{ seating_plan.seat_spacing }} seats between students</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Department Separation:</strong></td>
+                                <td>{{ seating_plan.department_separation|yesno:"Enabled,Disabled" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Randomization:</strong></td>
+                                <td>{{ seating_plan.randomize_seating|yesno:"Enabled,Disabled" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Algorithm:</strong></td>
+                                <td>{{ seating_plan.algorithm|default:"Standard" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentView = 'standard';
+
+function toggleView(view) {
+    currentView = view;
+    
+    // Update button states
+    document.querySelectorAll('.btn-outline-primary').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    // Update seat display
+    const seats = document.querySelectorAll('.seat-cell');
+    seats.forEach(seat => {
+        const allocated = seat.querySelector('.seat-allocated');
+        const empty = seat.querySelector('.seat-empty');
+        
+        if (allocated) {
+            updateSeatView(allocated, view);
+        }
+        if (empty) {
+            updateEmptySeatView(empty, view);
+        }
+    });
+}
+
+function updateSeatView(seatElement, view) {
+    const seatNumber = seatElement.querySelector('.seat-number');
+    const studentId = seatElement.querySelector('.student-id');
+    const studentName = seatElement.querySelector('.student-name');
+    const department = seatElement.dataset.department;
+    
+    // Clear current content
+    seatElement.innerHTML = '';
+    
+    switch(view) {
+        case 'standard':
+            seatElement.innerHTML = `
+                <div class="seat-number">${seatNumber.textContent}</div>
+                <div class="student-id">${studentId.textContent}</div>
+                ${studentName ? `<div class="student-name">${studentName.textContent}</div>` : ''}
+            `;
+            break;
+        case 'department':
+            seatElement.innerHTML = `
+                <div class="seat-number">${seatNumber.textContent}</div>
+                <div class="department-badge">${department}</div>
+            `;
+            break;
+        case 'seat':
+            seatElement.innerHTML = `
+                <div class="seat-number-large">${seatNumber.textContent}</div>
+            `;
+            break;
+    }
+}
+
+function updateEmptySeatView(seatElement, view) {
+    const position = seatElement.querySelector('.seat-position');
+    const status = seatElement.querySelector('.seat-status');
+    
+    seatElement.innerHTML = '';
+    
+    switch(view) {
+        case 'standard':
+            seatElement.innerHTML = `
+                <div class="seat-position">${position.textContent}</div>
+                <div class="seat-status">${status.textContent}</div>
+            `;
+            break;
+        case 'department':
+            seatElement.innerHTML = `
+                <div class="seat-position">${position.textContent}</div>
+            `;
+            break;
+        case 'seat':
+            seatElement.innerHTML = `
+                <div class="seat-number-large">${position.textContent}</div>
+            `;
+            break;
+    }
+}
+
+function regeneratePlan() {
+    if (confirm('Are you sure you want to regenerate the seating plan? This will reassign all seats.')) {
+        // Show loading indicator
+        const indicator = document.createElement('div');
+        indicator.className = 'alert alert-info position-fixed top-0 end-0 m-3';
+        indicator.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Regenerating seating plan...';
+        document.body.appendChild(indicator);
+        
+        setTimeout(() => {
+            indicator.remove();
+            alert('Seating plan would be regenerated here');
+            location.reload();
+        }, 2000);
+    }
+}
+
+function printPlan() {
+    window.print();
+}
+
+function exportPlan() {
+    // Show loading indicator
+    const indicator = document.createElement('div');
+    indicator.className = 'alert alert-info position-fixed top-0 end-0 m-3';
+    indicator.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Exporting seating plan...';
+    document.body.appendChild(indicator);
+    
+    setTimeout(() => {
+        indicator.remove();
+        alert('Seating plan would be exported here (PDF functionality to be implemented)');
+    }, 2000);
+}
+
+// Add click handlers for seat details
+document.addEventListener('DOMContentLoaded', function() {
+    const seats = document.querySelectorAll('.seat-allocated');
+    seats.forEach(seat => {
+        seat.style.cursor = 'pointer';
+        seat.addEventListener('click', function() {
+            const studentId = this.querySelector('.student-id').textContent;
+            const studentName = this.querySelector('.student-name')?.textContent;
+            const department = this.dataset.department;
+            const row = this.parentElement.dataset.row;
+            const col = this.parentElement.dataset.col;
+            
+            alert(`Seat Details:\nSeat: ${this.querySelector('.seat-number').textContent}\nStudent ID: ${studentId}\nName: ${studentName || 'N/A'}\nDepartment: ${department}\nPosition: Row ${row}, Column ${col}`);
+        });
+    });
+});
+</script>
+
+<style>
+.seating-plan {
+    font-size: 12px;
+}
+
+.seat-cell {
+    width: 80px;
+    height: 60px;
+    vertical-align: middle;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.seat-cell:hover {
+    background-color: #f0f0f0;
+    transform: scale(1.05);
+}
+
+.seat-allocated {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    border-radius: 4px;
+    padding: 2px;
+    font-weight: bold;
+    font-size: 10px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.seat-empty {
+    background: #f8f9fa;
+    border: 1px dashed #dee2e6;
+    border-radius: 4px;
+    color: #6c757d;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.seat-number {
+    font-weight: bold;
+    font-size: 11px;
+}
+
+.seat-number-large {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.student-id {
+    font-size: 9px;
+    opacity: 0.8;
+}
+
+.student-name {
+    font-size: 8px;
+    opacity: 0.7;
+}
+
+.department-badge {
+    background: rgba(255,255,255,0.3);
+    border-radius: 2px;
+    padding: 1px 3px;
+    font-size: 8px;
+    margin-top: 2px;
+}
+
+/* Legend styles */
+.seat-allocated-mini {
+    width: 20px;
+    height: 20px;
+    background: #28a745;
+    border-radius: 2px;
+    display: inline-block;
+}
+
+.seat-empty-mini {
+    width: 20px;
+    height: 20px;
+    background: #f8f9fa;
+    border: 1px dashed #dee2e6;
+    border-radius: 2px;
+    display: inline-block;
+}
+
+.seat-aisle-mini {
+    width: 20px;
+    height: 20px;
+    background: #6c757d;
+    border-radius: 2px;
+    display: inline-block;
+}
+
+/* Department colors */
+.cs-mini { background: #007bff; }
+.math-mini { background: #28a745; }
+.physics-mini { background: #ffc107; }
+
+/* Print styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    .seating-plan {
+        font-size: 8px;
+    }
+    
+    .seat-cell {
+        width: 60px;
+        height: 40px;
+    }
+}
+</style>
+{% endblock %}

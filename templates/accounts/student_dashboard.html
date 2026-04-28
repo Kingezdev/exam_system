@@ -1,0 +1,273 @@
+{% extends 'accounts/dashboard.html' %}
+
+{% block title %}Student Dashboard - PLASU Exam System{% endblock %}
+
+{% block content %}
+<!-- Student specific content -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-graduate me-2"></i>
+                    My Academic Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-id-card me-2"></i>Student Details</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Student ID:</strong></td>
+                                <td>{{ user.student_id|default:"Not Assigned" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Full Name:</strong></td>
+                                <td>{{ user.get_full_name }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Department:</strong></td>
+                                <td>{{ user.department.name|default:"Not Assigned" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Program:</strong></td>
+                                <td>{{ user.program.name|default:"Not Assigned" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-chart-line me-2"></i>Academic Progress</h6>
+                        <div class="progress mb-3">
+                            <div class="progress-bar bg-success" style="width: 65%">65% Complete</div>
+                        </div>
+                        <p class="text-muted small">Current Academic Session: 2023/2024</p>
+                        <p class="text-muted small">Current Semester: Second Semester</p>
+                        <p class="text-muted small">Level: 200 Level</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Enrolled Courses -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-book me-2"></i>
+                    My Enrolled Courses
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Course Code</th>
+                                <th>Course Name</th>
+                                <th>Credit Hours</th>
+                                <th>Level</th>
+                                <th>Semester</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>CSC201</td>
+                                <td>Data Structures and Algorithms</td>
+                                <td>3</td>
+                                <td>200</td>
+                                <td>Second</td>
+                                <td><span class="badge bg-success">Active</span></td>
+                            </tr>
+                            <tr>
+                                <td>MTH201</td>
+                                <td>Linear Algebra</td>
+                                <td>3</td>
+                                <td>200</td>
+                                <td>Second</td>
+                                <td><span class="badge bg-success">Active</span></td>
+                            </tr>
+                            <tr>
+                                <td>PHY201</td>
+                                <td>Physics II</td>
+                                <td>2</td>
+                                <td>200</td>
+                                <td>Second</td>
+                                <td><span class="badge bg-success">Active</span></td>
+                            </tr>
+                            <tr>
+                                <td>ENG201</td>
+                                <td>Communication Skills</td>
+                                <td>2</td>
+                                <td>200</td>
+                                <td>Second</td>
+                                <td><span class="badge bg-success">Active</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upcoming Exams -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar-alt me-2"></i>
+                    Upcoming Examinations
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Course</th>
+                                <th>Venue</th>
+                                <th>Seat Number</th>
+                                <th>Days Remaining</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2024-05-15</td>
+                                <td>09:00 - 12:00</td>
+                                <td>CSC201 - Data Structures</td>
+                                <td>Lecture Hall A</td>
+                                <td>A-15</td>
+                                <td><span class="badge bg-warning">18 days</span></td>
+                            </tr>
+                            <tr>
+                                <td>2024-05-18</td>
+                                <td>14:00 - 17:00</td>
+                                <td>MTH201 - Linear Algebra</td>
+                                <td>Lecture Hall B</td>
+                                <td>B-22</td>
+                                <td><span class="badge bg-info">21 days</span></td>
+                            </tr>
+                            <tr>
+                                <td>2024-05-22</td>
+                                <td>10:00 - 13:00</td>
+                                <td>PHY201 - Physics II</td>
+                                <td>Science Lab 1</td>
+                                <td>C-08</td>
+                                <td><span class="badge bg-success">25 days</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt me-2"></i>
+                    Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light border">
+                            <div class="card-body text-center">
+                                <i class="fas fa-calendar-alt fa-2x text-primary mb-2"></i>
+                                <h6>View Schedule</h6>
+                                <p class="small">Complete exam timetable</p>
+                                <a href="{% url 'exams:student_schedule' %}" class="btn btn-primary btn-sm">
+                                    View Schedule
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light border">
+                            <div class="card-body text-center">
+                                <i class="fas fa-chair fa-2x text-success mb-2"></i>
+                                <h6>Seating Plan</h6>
+                                <p class="small">View your seat allocation</p>
+                                <a href="#" class="btn btn-success btn-sm">
+                                    View Seat
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light border">
+                            <div class="card-body text-center">
+                                <i class="fas fa-file-alt fa-2x text-info mb-2"></i>
+                                <h6>Results</h6>
+                                <p class="small">Check exam results</p>
+                                <a href="#" class="btn btn-info btn-sm">
+                                    View Results
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light border">
+                            <div class="card-body text-center">
+                                <i class="fas fa-download fa-2x text-warning mb-2"></i>
+                                <h6>Download</h6>
+                                <p class="small">Download timetable</p>
+                                <a href="#" class="btn btn-warning btn-sm">
+                                    Download PDF
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Important Notices -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Important Notices
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <h6><i class="fas fa-info-circle me-2"></i>Exam Registration Reminder</h6>
+                    <p class="mb-0">Please ensure you have registered for all your courses before the exam period begins. Late registration will not be accepted.</p>
+                </div>
+                
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-map-marker-alt me-2"></i>Venue Information</h6>
+                    <p class="mb-0">All exams will be held at the main campus. Please arrive at least 30 minutes before your scheduled exam time.</p>
+                </div>
+                
+                <div class="alert alert-success">
+                    <h6><i class="fas fa-id-card me-2"></i>Identification Requirement</h6>
+                    <p class="mb-0">You must bring your student ID card and a valid form of identification to all examinations.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

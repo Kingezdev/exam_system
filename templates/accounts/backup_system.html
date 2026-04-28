@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block title %}System Backup - PLASU Exam System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-backup me-2"></i>
+                System Backup
+            </h2>
+            <a href="{% url 'accounts:dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-cloud-download-alt me-2"></i>
+                    Create Backup
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card border-left-primary shadow h-100 py-2">
+                                <div class="card-body text-center">
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="radio" name="backup_type" id="database_backup" value="database" required>
+                                        <label class="form-check-label" for="database_backup">
+                                            <i class="fas fa-database fa-2x text-primary mb-2"></i>
+                                            <h6>Database Backup</h6>
+                                            <p class="small text-muted">Backup all database data</p>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="card border-left-success shadow h-100 py-2">
+                                <div class="card-body text-center">
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="radio" name="backup_type" id="media_backup" value="media">
+                                        <label class="form-check-label" for="media_backup">
+                                            <i class="fas fa-images fa-2x text-success mb-2"></i>
+                                            <h6>Media Backup</h6>
+                                            <p class="small text-muted">Backup uploaded files</p>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="card border-left-info shadow h-100 py-2">
+                                <div class="card-body text-center">
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="radio" name="backup_type" id="full_backup" value="full" checked>
+                                        <label class="form-check-label" for="full_backup">
+                                            <i class="fas fa-archive fa-2x text-info mb-2"></i>
+                                            <h6>Full Backup</h6>
+                                            <p class="small text-muted">Complete system backup</p>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-download me-2"></i>
+                            Create Backup
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Backup Information
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="small">
+                    <strong>Database Backup:</strong><br>
+                    Exports all database tables and data in JSON format.
+                </p>
+                <p class="small">
+                    <strong>Media Backup:</strong><br>
+                    Compresses all uploaded files and media into a ZIP archive.
+                </p>
+                <p class="small">
+                    <strong>Full Backup:</strong><br>
+                    Creates a complete backup including database and media files.
+                </p>
+                
+                <div class="alert alert-warning small mt-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Note:</strong> Backups are stored in the <code>backups/</code> directory.
+                </div>
+            </div>
+        </div>
+        
+        <div class="card shadow">
+            <div class="card-header bg-warning text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-shield-alt me-2"></i>
+                    Security Notice
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="small">
+                    <strong>Important:</strong>
+                </p>
+                <ul class="small">
+                    <li>Only administrators can create backups</li>
+                    <li>Regular backups are recommended</li>
+                    <li>Store backups securely</li>
+                    <li>Test backup restores regularly</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Backup History -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-history me-2"></i>
+                    Backup History
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if backup_files %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Filename</th>
+                                    <th>Type</th>
+                                    <th>Size</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for backup in backup_files %}
+                                <tr>
+                                    <td>
+                                        <i class="fas fa-file-archive me-2"></i>
+                                        {{ backup.name }}
+                                    </td>
+                                    <td>
+                                        {% if backup.type == 'Database' %}
+                                            <span class="badge bg-primary">{{ backup.type }}</span>
+                                        {% elif backup.type == 'Media' %}
+                                            <span class="badge bg-success">{{ backup.type }}</span>
+                                        {% else %}
+                                            <span class="badge bg-info">{{ backup.type }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ backup.size|filesizeformat }}</td>
+                                    <td>{{ backup.date|date:"Y-m-d H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'accounts:download_backup' backup.name|urlencode %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-download"></i> Download
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-inbox fa-3x mb-3"></i>
+                        <p>No backup files found.</p>
+                        <p class="small">Create your first backup using the form above.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

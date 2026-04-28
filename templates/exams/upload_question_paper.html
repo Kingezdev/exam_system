@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Upload Question Paper - PLASU Exam System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-file-upload me-2"></i>
+                Upload Question Paper
+            </h2>
+            <div>
+                <a href="{% url 'exams:exam_detail' exam.id %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Back to Exam
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-file-alt me-2"></i>
+                    Question Paper for {{ exam.course.code }} - {{ exam.get_exam_type_display }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Exam Information -->
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-info-circle me-2"></i>Exam Details</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Course:</strong> {{ exam.course.code }} - {{ exam.course.name }}<br>
+                            <strong>Date:</strong> {{ exam.date|date:"l, F d, Y" }}<br>
+                            <strong>Time:</strong> {{ exam.start_time }} - {{ exam.end_time }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Duration:</strong> {{ exam.duration_minutes }} minutes<br>
+                            <strong>Total Marks:</strong> {{ exam.total_marks }}<br>
+                            <strong>Venue:</strong> {{ exam.allocation.venue.name|default:"Not Assigned" }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Existing Question Paper -->
+                {% if form.instance %}
+                <div class="alert alert-warning">
+                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Existing Question Paper</h6>
+                    <p>A question paper already exists for this exam. Uploading a new file will replace the existing one.</p>
+                    {% if form.instance.file %}
+                        <p><strong>Current File:</strong> {{ form.instance.file.name }}</p>
+                        <a href="{{ form.instance.file.url }}" class="btn btn-sm btn-info" target="_blank">
+                            <i class="fas fa-eye me-1"></i>
+                            View Current Paper
+                        </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    
+                    <!-- Upload Guidelines -->
+                    <div class="alert alert-light">
+                        <h6><i class="fas fa-lightbulb me-2"></i>Upload Guidelines</h6>
+                        <ul class="mb-0">
+                            <li>Supported formats: PDF, DOC, DOCX</li>
+                            <li>Maximum file size: 10MB</li>
+                            <li>Ensure the paper is properly formatted and readable</li>
+                            <li>Include exam instructions and all questions</li>
+                            <li>Double-check the course code and exam details</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'exams:exam_detail' exam.id %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-upload me-2"></i>
+                            {{ "Upload"|default:"Update" }} Question Paper
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Security Notice -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fas fa-shield-alt me-2"></i>
+                    Security Notice
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-lock me-2"></i>Secure Access</h6>
+                        <p>By default, question papers are marked as secure and will only be accessible to authorized personnel (exam officers, invigilators) during the examination period.</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-user-shield me-2"></i>Access Control</h6>
+                        <p>Students will not have access to question papers until the exam is completed and results are published, unless explicitly granted permission.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

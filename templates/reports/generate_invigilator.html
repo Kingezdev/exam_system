@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}Generate Invigilator Schedule - PLASU Exam System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-user-tie me-2"></i>
+                Generate Invigilator Schedule
+            </h2>
+            <a href="{% url 'reports:dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar-alt me-2"></i>
+                    Select Exam Session
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="exam_session" class="form-label">Exam Session</label>
+                        <select name="exam_session" id="exam_session" class="form-select" required>
+                            <option value="">Select an exam session...</option>
+                            {% for session in exam_sessions %}
+                            <option value="{{ session.id }}">
+                                {{ session.name }} ({{ session.start_date }} to {{ session.end_date }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Choose the exam session for which you want to generate the invigilator schedule.</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-user-tie me-2"></i>
+                            Generate Invigilator Schedule PDF
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Information
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="small">
+                    <strong>What this report contains:</strong>
+                </p>
+                <ul class="small">
+                    <li>All invigilator assignments</li>
+                    <li>Invigilator contact information</li>
+                    <li>Exam details and venues</li>
+                    <li>Assignment dates and times</li>
+                    <li>Invigilator availability status</li>
+                </ul>
+                
+                <p class="small text-muted">
+                    <strong>Note:</strong> Only exam sessions with invigilator assignments will generate reports.
+                </p>
+            </div>
+        </div>
+        
+        <div class="card shadow mt-3">
+            <div class="card-header bg-warning text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Requirements
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="small">
+                    Before generating an invigilator schedule, ensure that:
+                </p>
+                <ul class="small">
+                    <li>Exam sessions have been created</li>
+                    <li>Exams have been scheduled</li>
+                    <li>Venues have been allocated</li>
+                    <li>Invigilators have been assigned</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card shadow mt-3">
+            <div class="card-header bg-success text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    Usage Tips
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="small">
+                    <strong>Best practices:</strong>
+                </p>
+                <ul class="small">
+                    <li>Generate schedules before exam period</li>
+                    <li>Distribute to all invigilators</li>
+                    <li>Keep copies for admin records</li>
+                    <li>Update schedules for any changes</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

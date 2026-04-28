@@ -1,0 +1,372 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Enrollments - PLASU Exam System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-user-graduate me-2"></i>
+                Student Enrollments
+            </h2>
+            <a href="{% url 'academics:enrollment_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>
+                Enroll Student
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-light">
+                <h6 class="mb-0">
+                    <i class="fas fa-filter me-2"></i>
+                    Filter Enrollments
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="student" class="form-label">Student</label>
+                        <select name="student" id="student" class="form-select">
+                            <option value="">All Students</option>
+                            {% for student in students %}
+                            <option value="{{ student.id }}" {% if request.GET.student == student.id|stringformat:"s" %}selected{% endif %}>
+                                {{ student.get_full_name|default:student.username }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="course" class="form-label">Course</label>
+                        <select name="course" id="course" class="form-select">
+                            <option value="">All Courses</option>
+                            {% for course in courses %}
+                            <option value="{{ course.id }}" {% if request.GET.course == course.id|stringformat:"s" %}selected{% endif %}>
+                                {{ course.code }} - {{ course.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="session" class="form-label">Session</label>
+                        <input type="text" name="session" id="session" class="form-control" 
+                               value="{{ request.GET.session }}" placeholder="e.g., 2023/2024">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="semester" class="form-label">Semester</label>
+                        <select name="semester" id="semester" class="form-select">
+                            <option value="">All Semesters</option>
+                            <option value="first" {% if request.GET.semester == "first" %}selected{% endif %}>First</option>
+                            <option value="second" {% if request.GET.semester == "second" %}selected{% endif %}>Second</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-search me-1"></i>
+                            Search
+                        </button>
+                        <a href="{% url 'academics:enrollment_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-1"></i>
+                            Clear
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    All Enrollments
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if enrollments %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Student ID</th>
+                                <th>Course</th>
+                                <th>Department</th>
+                                <th>Session</th>
+                                <th>Semester</th>
+                                <th>Status</th>
+                                <th>Enrolled</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for enrollment in enrollments %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px; font-size: 12px;">
+                                            {{ enrollment.student.first_name.0|default:enrollment.student.username.0|upper }}{{ enrollment.student.last_name.0|default:"" }}
+                                        </div>
+                                        <div>
+                                            <strong>{{ enrollment.student.get_full_name|default:enrollment.student.username }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ enrollment.student.email }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ enrollment.student.student_id|default:"N/A" }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ enrollment.course.code }}</span>
+                                    <br>
+                                    <small>{{ enrollment.course.name }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-warning">{{ enrollment.course.department.name }}</span>
+                                </td>
+                                <td>{{ enrollment.academic_session }}</td>
+                                <td>
+                                    <span class="badge bg-success">{{ enrollment.get_semester_display }}</span>
+                                </td>
+                                <td>
+                                    {% if enrollment.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ enrollment.enrollment_date|date:"M d, Y" }}</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'academics:enrollment_update' enrollment.id %}" class="btn btn-sm btn-info" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'academics:enrollment_update' enrollment.id %}" class="btn btn-sm btn-warning" title="Edit Enrollment">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-danger" title="Delete Enrollment" data-bs-toggle="modal" data-bs-target="#deleteModal{{ enrollment.id }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-user-graduate fa-3x text-muted mb-3"></i>
+                    <h5>No Enrollments Found</h5>
+                    <p class="text-muted">Start by enrolling students in courses.</p>
+                    <a href="{% url 'academics:enrollment_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>
+                        Enroll First Student
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mt-4">
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Total Enrollments
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ enrollments.count }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-user-graduate fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Active Enrollments
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ active_enrollments|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Unique Students
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ unique_students|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-users fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Current Session
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ current_session_enrollments|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar-alt fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Enrollment Trends Chart -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>
+                    Enrollment Trends
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="enrollmentChart" width="400" height="150"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modals -->
+{% for enrollment in enrollments %}
+<div class="modal fade" id="deleteModal{{ enrollment.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ enrollment.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel{{ enrollment.id }}">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Confirm Deletion
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> This action cannot be undone.
+                </div>
+                
+                <p>Are you sure you want to delete the following enrollment?</p>
+                
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h6 class="card-title">{{ enrollment.student.get_full_name|default:enrollment.student.username }}</h6>
+                        <p class="card-text mb-0">
+                            <strong>Student ID:</strong> {{ enrollment.student.student_id|default:"N/A" }}<br>
+                            <strong>Course:</strong> {{ enrollment.course.code }} - {{ enrollment.course.name }}<br>
+                            <strong>Department:</strong> {{ enrollment.course.department.name }}<br>
+                            <strong>Session:</strong> {{ enrollment.academic_session }}<br>
+                            <strong>Semester:</strong> {{ enrollment.get_semester_display }}<br>
+                            <strong>Status:</strong> 
+                            {% if enrollment.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                <p class="text-muted small mt-3">
+                    This will remove the student's access to the course and related academic records.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <form method="post" action="{% url 'academics:enrollment_delete' enrollment.id %}">
+                    {% csrf_token %}
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>
+                        Delete Enrollment
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Enrollment Trends Chart
+const enrollmentCtx = document.getElementById('enrollmentChart').getContext('2d');
+const enrollmentChart = new Chart(enrollmentCtx, {
+    type: 'line',
+    data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+        datasets: [{
+            label: 'New Enrollments',
+            data: [45, 52, 38, 65, 48, 72],
+            borderColor: '#4e73df',
+            backgroundColor: 'rgba(78, 115, 223, 0.1)',
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

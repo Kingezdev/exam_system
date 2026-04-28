@@ -1,0 +1,426 @@
+{% extends 'base.html' %}
+
+{% block title %}My Exam Schedule - PLASU Exam System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>
+            <i class="fas fa-calendar-alt me-2"></i>
+            My Exam Schedule
+        </h2>
+        <p class="text-muted">View all your upcoming examinations and seating arrangements.</p>
+    </div>
+</div>
+
+<!-- Schedule Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Total Exams
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ exams.count }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            This Week
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ week_exams|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar-week fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Next Exam
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {% if next_exam %}
+                                {{ next_exam.date|date:"M d" }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar-day fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Today
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ today_exams|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-clock fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-light">
+                <h6 class="mb-0">
+                    <i class="fas fa-filter me-2"></i>
+                    Filter Schedule
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="date_from" class="form-label">From Date</label>
+                        <input type="date" name="date_from" id="date_from" class="form-control" value="{{ request.GET.date_from }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="date_to" class="form-label">To Date</label>
+                        <input type="date" name="date_to" id="date_to" class="form-control" value="{{ request.GET.date_to }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="exam_type" class="form-label">Exam Type</label>
+                        <select name="exam_type" id="exam_type" class="form-select">
+                            <option value="">All Types</option>
+                            <option value="continuous" {% if request.GET.exam_type == "continuous" %}selected{% endif %}>Continuous Assessment</option>
+                            <option value="mid_semester" {% if request.GET.exam_type == "mid_semester" %}selected{% endif %}>Mid-Semester</option>
+                            <option value="final" {% if request.GET.exam_type == "final" %}selected{% endif %}>Final</option>
+                            <option value="supplementary" {% if request.GET.exam_type == "supplementary" %}selected{% endif %}>Supplementary</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-search me-1"></i>
+                            Filter
+                        </button>
+                        <a href="{% url 'exams:student_schedule' %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-1"></i>
+                            Clear
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Exam Schedule -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    Examination Schedule
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if exams %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Course</th>
+                                <th>Exam Type</th>
+                                <th>Venue</th>
+                                <th>Seat</th>
+                                <th>Duration</th>
+                                <th>Days Left</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for exam in exams %}
+                            <tr class="{% if exam.today %}table-warning{% elif exam.days_remaining <= 3 %}table-danger{% endif %}">
+                                <td>
+                                    <strong>{{ exam.date|date:"M d, Y" }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ exam.date|date:"l" }}</small>
+                                </td>
+                                <td>
+                                    {{ exam.start_time }} - {{ exam.end_time }}
+                                </td>
+                                <td>
+                                    <div>
+                                        <span class="badge bg-info">{{ exam.course.code }}</span>
+                                        <br>
+                                        <strong>{{ exam.course.name }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ exam.course.department.name }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ exam.exam_type|yesno:'primary,secondary,warning,danger' }}">
+                                        {{ exam.get_exam_type_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if exam.allocation %}
+                                        {{ exam.allocation.venue.name }}
+                                    {% else %}
+                                        <span class="text-muted">TBA</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if exam.allocation and exam.allocation.student_allocations.filter(student=request.user).exists %}
+                                        {% with seat=exam.allocation.student_allocations.get(student=request.user) %}
+                                            <span class="badge bg-success">{{ seat.seat_number }}</span>
+                                        {% endwith %}
+                                    {% else %}
+                                        <span class="text-muted">TBA</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ exam.duration_minutes }} min</td>
+                                <td>
+                                    {% if exam.days_remaining > 0 %}
+                                        <span class="badge bg-warning">{{ exam.days_remaining }} days</span>
+                                    {% elif exam.days_remaining == 0 %}
+                                        <span class="badge bg-danger">Today</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Past</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="#" class="btn btn-sm btn-info" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if exam.allocation and exam.allocation.student_allocations.filter(student=request.user).exists %}
+                                        <a href="#" class="btn btn-sm btn-success" title="View Seating Plan">
+                                            <i class="fas fa-chair"></i>
+                                        </a>
+                                        {% endif %}
+                                        <a href="#" class="btn btn-sm btn-warning" title="Download Timetable">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                    <h5>No Exams Scheduled</h5>
+                    <p class="text-muted">You don't have any exams scheduled for the selected period.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Calendar View -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar me-2"></i>
+                    Calendar View
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="examCalendar"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Important Reminders -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Important Reminders
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="alert alert-warning">
+                            <h6><i class="fas fa-id-card me-2"></i>Identification Required</h6>
+                            <p class="mb-0">You must bring your student ID card and a valid form of identification to all examinations.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-clock me-2"></i>Punctuality</h6>
+                            <p class="mb-0">Please arrive at the examination venue at least 30 minutes before the scheduled start time.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="alert alert-success">
+                            <h6><i class="fas fa-ban me-2"></i>Prohibited Items</h6>
+                            <p class="mb-0">Electronic devices, notes, and unauthorized materials are strictly prohibited in the examination hall.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="alert alert-danger">
+                            <h6><i class="fas fa-map-marker-alt me-2"></i>Venue Information</h6>
+                            <p class="mb-0">Check your seat allocation before the exam day and familiarize yourself with the venue location.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Download Options -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-download me-2"></i>
+                    Download Options
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="card border-light">
+                            <div class="card-body text-center">
+                                <i class="fas fa-file-pdf fa-3x text-danger mb-3"></i>
+                                <h6>PDF Timetable</h6>
+                                <p class="small">Download your complete exam schedule as PDF</p>
+                                <a href="#" class="btn btn-danger btn-sm">
+                                    <i class="fas fa-download me-1"></i>
+                                    Download PDF
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <div class="card border-light">
+                            <div class="card-body text-center">
+                                <i class="fas fa-calendar-alt fa-3x text-primary mb-3"></i>
+                                <h6>Calendar File</h6>
+                                <p class="small">Import your exam schedule to calendar app</p>
+                                <a href="#" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-download me-1"></i>
+                                    Download ICS
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <div class="card border-light">
+                            <div class="card-body text-center">
+                                <i class="fas fa-print fa-3x text-success mb-3"></i>
+                                <h6>Print Schedule</h6>
+                                <p class="small">Print your exam schedule for reference</p>
+                                <button class="btn btn-success btn-sm" onclick="window.print()">
+                                    <i class="fas fa-print me-1"></i>
+                                    Print Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Simple Calendar View
+const calendarDiv = document.getElementById('examCalendar');
+const today = new Date();
+const currentMonth = today.getMonth();
+const currentYear = today.getFullYear();
+const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+let calendarHTML = '<div class="table-responsive"><table class="table table-bordered"><thead><tr>';
+const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+weekDays.forEach(day => {
+    calendarHTML += `<th>${day}</th>`;
+});
+calendarHTML += '</tr></thead><tbody>';
+
+let date = 1;
+for (let i = 0; i < 6; i++) {
+    calendarHTML += '<tr>';
+    for (let j = 0; j < 7; j++) {
+        if (date > daysInMonth) {
+            calendarHTML += '<td></td>';
+        } else {
+            const isToday = date === today.getDate();
+            const hasExam = Math.random() > 0.8; // Random exam indicator
+            calendarHTML += `<td class="${isToday ? 'table-primary' : ''} ${hasExam ? 'table-warning' : ''}">${date}</td>`;
+            date++;
+        }
+    }
+    calendarHTML += '</tr>';
+    if (date > daysInMonth) break;
+}
+
+calendarHTML += '</tbody></table></div>';
+calendarDiv.innerHTML = calendarHTML;
+
+// Auto-refresh for today's exams
+const todayExamsCount = 0; // This would be set dynamically
+if (todayExamsCount > 0) {
+    setInterval(() => {
+        // Refresh page every 5 minutes if there are exams today
+        location.reload();
+    }, 300000);
+}
+</script>
+{% endblock %}

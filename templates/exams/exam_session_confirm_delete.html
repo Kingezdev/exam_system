@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Exam Session - PLASU Exam System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-trash me-2"></i>
+                Delete Exam Session
+            </h2>
+            <a href="{% url 'exams:exam_session_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>
+                Back to Sessions
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Confirm Deletion
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> This action cannot be undone. Deleting this exam session will also delete all exams, question papers, attendance records, and results associated with this session.
+                </div>
+                
+                <h5>Are you sure you want to delete this exam session?</h5>
+                
+                <div class="card bg-light mb-3">
+                    <div class="card-body">
+                        <h6 class="card-title">{{ session.name }}</h6>
+                        <p class="card-text">
+                            <strong>Academic Session:</strong> {{ session.academic_session }}<br>
+                            <strong>Semester:</strong> {{ session.get_semester_display }}<br>
+                            <strong>Start Date:</strong> {{ session.start_date|date:"M d, Y" }}<br>
+                            <strong>End Date:</strong> {{ session.end_date|date:"M d, Y" }}<br>
+                            <strong>Status:</strong> 
+                            {% if session.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}<br>
+                            <strong>Total Exams:</strong> {{ session.exams.count }}<br>
+                            <strong>Description:</strong> {{ session.description|default:"No description" }}
+                        </p>
+                    </div>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i>
+                            Yes, Delete Session
+                        </button>
+                        <a href="{% url 'exams:exam_session_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Deletion Information
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="small">
+                    <strong>What will be deleted:</strong>
+                </p>
+                <ul class="small">
+                    <li>The exam session record</li>
+                    <li>All exams in this session</li>
+                    <li>Question papers for all exams</li>
+                    <li>Exam attendance records</li>
+                    <li>Exam results and grades</li>
+                    <li>Exam conflict records</li>
+                    <li>Related scheduling data</li>
+                </ul>
+                
+                <div class="alert alert-danger small">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Important:</strong> Students will lose access to all exam information and results for this session.
+                </div>
+                
+                <div class="alert alert-light small">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>Alternative:</strong> Consider deactivating the session instead of deleting it if you want to preserve the records.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

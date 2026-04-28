@@ -1,0 +1,402 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ exam.course.code }} - {{ exam.get_exam_type_display }} - PLASU Exam System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-clipboard-list me-2"></i>
+                {{ exam.course.code }} - {{ exam.get_exam_type_display }}
+            </h2>
+            <div>
+                <a href="{% url 'exams:exam_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Back to Exams
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Exam Overview -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Examination Overview
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Course:</strong></td>
+                                <td>{{ exam.course.code }} - {{ exam.course.name }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Department:</strong></td>
+                                <td>{{ exam.course.department.name }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Exam Type:</strong></td>
+                                <td>
+                                    <span class="badge bg-{{ exam.exam_type|yesno:'primary,secondary,warning,danger' }}">
+                                        {{ exam.get_exam_type_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Date:</strong></td>
+                                <td>{{ exam.date|date:"l, F d, Y" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Time:</strong></td>
+                                <td>{{ exam.start_time }} - {{ exam.end_time }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Duration:</strong></td>
+                                <td>{{ exam.duration_minutes }} minutes</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Total Marks:</strong></td>
+                                <td>{{ exam.total_marks }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Passing Marks:</strong></td>
+                                <td>{{ exam.passing_marks }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                {% if exam.instructions %}
+                <div class="mt-3">
+                    <h6><i class="fas fa-list-ul me-2"></i>Instructions:</h6>
+                    <div class="alert alert-info">
+                        {{ exam.instructions|linebreaks }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card shadow mb-3">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Statistics
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 mb-3">
+                        <h4 class="text-primary">{{ total_students }}</h4>
+                        <small class="text-muted">Enrolled Students</small>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <h4 class="text-success">{{ attendance_count }}</h4>
+                        <small class="text-muted">Attendance Marked</small>
+                    </div>
+                </div>
+                <div class="progress">
+                    {% if total_students > 0 %}
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 65%">
+                            65.0% Attendance
+                        </div>
+                    {% else %}
+                        <div class="progress-bar bg-secondary" role="progressbar" style="width: 0%">
+                            No Students Enrolled
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Status
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>Publication Status:</strong>
+                    {% if exam.is_published %}
+                        <span class="badge bg-success">Published</span>
+                    {% else %}
+                        <span class="badge bg-warning">Draft</span>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Question Paper:</strong>
+                    {% if exam.question_paper %}
+                        <span class="badge bg-success">Uploaded</span>
+                    {% else %}
+                        <span class="badge bg-danger">Not Uploaded</span>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Venue Allocation:</strong>
+                    {% if exam.allocation %}
+                        <span class="badge bg-success">{{ exam.allocation.venue.name }}</span>
+                    {% else %}
+                        <span class="badge bg-danger">Not Allocated</span>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Invigilators:</strong>
+                    {% if exam.allocation and exam.allocation.invigilator_assignments.exists %}
+                        <span class="badge bg-success">{{ exam.allocation.invigilator_assignments.count }} Assigned</span>
+                    {% else %}
+                        <span class="badge bg-warning">Not Assigned</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-body">
+                <div class="btn-group" role="group">
+                    <a href="{% url 'exams:upload_question_paper' exam.id %}" class="btn btn-primary">
+                        <i class="fas fa-file-upload me-2"></i>
+                        Upload Question Paper
+                    </a>
+                    <a href="{% url 'exams:exam_attendance' exam.id %}" class="btn btn-success">
+                        <i class="fas fa-user-check me-2"></i>
+                        Manage Attendance
+                    </a>
+                    {% if exam.allocation %}
+                    <a href="{% url 'allocation:seating_plan' exam.allocation.id %}" class="btn btn-info">
+                        <i class="fas fa-chair me-2"></i>
+                        View Seating Plan
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'exams:exam_update' exam.id %}" class="btn btn-warning">
+                        <i class="fas fa-edit me-2"></i>
+                        Edit Exam
+                    </a>
+                    {% if not exam.is_published %}
+                    <button class="btn btn-success">
+                        <i class="fas fa-bullhorn me-2"></i>
+                        Publish Exam
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Enrolled Students -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-users me-2"></i>
+                    Enrolled Students ({{ enrolled_students.count }})
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if enrolled_students %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Name</th>
+                                <th>Department</th>
+                                <th>Attendance</th>
+                                <th>Seat Number</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in enrollment_data %}
+                            {% with enrollment=item.enrollment %}
+                            <tr>
+                                <td>
+                                    <span class="badge bg-info">{{ enrollment.student.student_id|default:"N/A" }}</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px; font-size: 12px;">
+                                            {{ enrollment.student.first_name.0|default:enrollment.student.username.0|upper }}{{ enrollment.student.last_name.0|default:"" }}
+                                        </div>
+                                        <div>
+                                            <strong>{{ enrollment.student.get_full_name|default:enrollment.student.username }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ enrollment.student.email }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ enrollment.student.department.name|default:"N/A" }}</span>
+                                </td>
+                                <td>
+                                    {% if item.has_attendance %}
+                                        {% if item.is_present %}
+                                            <span class="badge bg-success">Present</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Absent</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="badge bg-secondary">Not Marked</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if item.has_seat %}
+                                        {{ item.seat_number }}
+                                    {% else %}
+                                        <span class="text-muted">Not Assigned</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endwith %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <i class="fas fa-users fa-2x text-muted mb-2"></i>
+                    <p class="text-muted">No students enrolled in this exam yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Question Paper Details -->
+{% if exam.question_paper %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-file-alt me-2"></i>
+                    Question Paper Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Title:</strong></td>
+                                <td>{{ exam.question_paper.title }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Uploaded By:</strong></td>
+                                <td>{{ exam.question_paper.uploaded_by.get_full_name|default:exam.question_paper.uploaded_by.username }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Uploaded At:</strong></td>
+                                <td>{{ exam.question_paper.uploaded_at|date:"M d, Y H:i" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Security:</strong></td>
+                                <td>
+                                    {% if exam.question_paper.is_secure %}
+                                        <span class="badge bg-warning">Secure Access</span>
+                                    {% else %}
+                                        <span class="badge bg-info">Public Access</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>File:</strong></td>
+                                <td>
+                                    {% if exam.question_paper.file %}
+                                        <a href="{{ exam.question_paper.file.url }}" class="btn btn-sm btn-primary" target="_blank">
+                                            <i class="fas fa-download me-1"></i>
+                                            Download
+                                        </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                {% if exam.question_paper.description %}
+                <div class="mt-3">
+                    <h6>Description:</h6>
+                    <p>{{ exam.question_paper.description }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Recent Activities -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-history me-2"></i>
+                    Recent Activities
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">Exam Created</h6>
+                            <small>{{ exam.created_at|timesince }} ago</small>
+                        </div>
+                        <p class="mb-1">Examination was created by {{ exam.created_by.get_full_name|default:exam.created_by.username }}</p>
+                    </div>
+                    
+                    {% if exam.question_paper %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">Question Paper Uploaded</h6>
+                            <small>{{ exam.question_paper.uploaded_at|timesince }} ago</small>
+                        </div>
+                        <p class="mb-1">Question paper was uploaded by {{ exam.question_paper.uploaded_by.get_full_name|default:exam.question_paper.uploaded_by.username }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if exam.is_published %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">Exam Published</h6>
+                            <small>Recently</small>
+                        </div>
+                        <p class="mb-1">Examination was published and is now visible to students</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

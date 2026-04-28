@@ -1,0 +1,404 @@
+{% extends 'base.html' %}
+
+{% block title %}Programs - PLASU Exam System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-graduation-cap me-2"></i>
+                Academic Programs
+            </h2>
+            <a href="{% url 'academics:program_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>
+                Add Program
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-light">
+                <h6 class="mb-0">
+                    <i class="fas fa-filter me-2"></i>
+                    Filter Programs
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="department" class="form-label">Department</label>
+                        <select name="department" id="department" class="form-select">
+                            <option value="">All Departments</option>
+                            {% for department in departments %}
+                            <option value="{{ department.id }}" {% if request.GET.department == department.id|stringformat:"s" %}selected{% endif %}>
+                                {{ department.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="faculty" class="form-label">Faculty</label>
+                        <select name="faculty" id="faculty" class="form-select">
+                            <option value="">All Faculties</option>
+                            {% for faculty in faculties %}
+                            <option value="{{ faculty.id }}" {% if request.GET.faculty == faculty.id|stringformat:"s" %}selected{% endif %}>
+                                {{ faculty.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-search me-1"></i>
+                            Search
+                        </button>
+                        <a href="{% url 'academics:program_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-1"></i>
+                            Clear
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    All Programs
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if programs %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Code</th>
+                                <th>Department</th>
+                                <th>Faculty</th>
+                                <th>Duration</th>
+                                <th>Students</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for program in programs %}
+                            <tr>
+                                <td>
+                                    <strong>{{ program.name }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ program.code }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ program.department.name }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-warning">{{ program.department.faculty.name }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">{{ program.duration_years }} years</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">{{ program.student_count|default:"0" }}</span>
+                                </td>
+                                <td>
+                                    {% if program.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'academics:enrollment_list' %}?program={{ program.id }}" class="btn btn-sm btn-info" title="View Students">
+                                            <i class="fas fa-users"></i>
+                                        </a>
+                                        <a href="{% url 'academics:program_update' program.id %}" class="btn btn-sm btn-warning" title="Edit Program">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-danger" title="Delete Program" data-bs-toggle="modal" data-bs-target="#deleteModal{{ program.id }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-graduation-cap fa-3x text-muted mb-3"></i>
+                    <h5>No Programs Found</h5>
+                    <p class="text-muted">Start by adding your first academic program to the system.</p>
+                    <a href="{% url 'academics:program_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>
+                        Add First Program
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mt-4">
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Total Programs
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ programs.count }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-graduation-cap fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Active Programs
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ active_programs|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Total Students
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ total_students|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-user-graduate fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Departments
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ total_departments|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-building fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    Programs by Faculty
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="facultyChart" width="400" height="200" data-chart-data='{"labels": [{% for faculty in faculty_stats %}"{{ faculty.name|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}], "data": [{% for faculty in faculty_stats %}{{ faculty.count }}{% if not forloop.last %},{% endif %}{% endfor %}]}'></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Program Duration Distribution
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="durationChart" width="400" height="200" data-chart-data='{"labels": [{% for duration in duration_stats %}"{{ duration.duration|escapejs }} years"{% if not forloop.last %},{% endif %}{% endfor %}], "data": [{% for duration in duration_stats %}{{ duration.count }}{% if not forloop.last %},{% endif %}{% endfor %}]}'></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modals -->
+{% for program in programs %}
+<div class="modal fade" id="deleteModal{{ program.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ program.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel{{ program.id }}">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Confirm Deletion
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> This action cannot be undone.
+                </div>
+                
+                <p>Are you sure you want to delete the following program?</p>
+                
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h6 class="card-title">{{ program.name }}</h6>
+                        <p class="card-text mb-0">
+                            <strong>Code:</strong> {{ program.code }}<br>
+                            <strong>Department:</strong> {{ program.department.name }}<br>
+                            <strong>Faculty:</strong> {{ program.department.faculty.name }}<br>
+                            <strong>Duration:</strong> {{ program.duration_years }} years<br>
+                            <strong>Degree Type:</strong> {{ program.get_degree_type_display }}<br>
+                            <strong>Status:</strong> 
+                            {% if program.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                <p class="text-muted small mt-3">
+                    This will also delete all student enrollments and related academic records for this program.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <form method="post" action="{% url 'academics:program_delete' program.id %}">
+                    {% csrf_token %}
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>
+                        Delete Program
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get chart data from data attributes
+    const facultyChart = document.getElementById('facultyChart');
+    const durationChart = document.getElementById('durationChart');
+    
+    if (facultyChart) {
+        const facultyData = JSON.parse(facultyChart.getAttribute('data-chart-data') || '{}');
+        if (facultyData.labels && facultyData.labels.length > 0) {
+            new Chart(facultyChart, {
+                type: 'pie',
+                data: {
+                    labels: facultyData.labels,
+                    datasets: [{
+                        data: facultyData.data,
+                        backgroundColor: [
+                            'rgba(54, 162, 235, 0.8)',
+                            'rgba(255, 99, 132, 0.8)',
+                            'rgba(255, 206, 86, 0.8)',
+                            'rgba(75, 192, 192, 0.8)',
+                            'rgba(153, 102, 255, 0.8)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+        }
+    }
+    
+    if (durationChart) {
+        const durationData = JSON.parse(durationChart.getAttribute('data-chart-data') || '{}');
+        if (durationData.labels && durationData.labels.length > 0) {
+            new Chart(durationChart, {
+                type: 'bar',
+                data: {
+                    labels: durationData.labels,
+                    datasets: [{
+                        label: 'Number of Programs',
+                        data: durationData.data,
+                        backgroundColor: 'rgba(75, 192, 192, 0.8)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+});
+</script>
+{% endblock %}

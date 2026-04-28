@@ -1,0 +1,419 @@
+{% extends 'base.html' %}
+
+{% block title %}My Assignments{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">My Assignments</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'invigilators:invigilator_list' %}">Invigilators</a></li>
+                        <li class="breadcrumb-item active">My Assignments</li>
+                    </ol>
+                </nav>
+            </div>
+
+            <!-- Assignment Statistics -->
+            <div class="row mb-4">
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card shadow border-left-primary">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                        Total Assignments
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_count }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-calendar-check fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card shadow border-left-success">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                        Accepted
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ accepted_count }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card shadow border-left-warning">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                        Pending
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pending_count }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-clock fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card shadow border-left-info">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                        Upcoming
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                        {% now "Y-m-d" as today %}
+                                        {% for assignment in assignments %}
+                                            {% if assignment.exam_allocation.exam.date >= today %}
+                                                {% if not forloop.first %}, {% endif %}
+                                                {{ assignment.exam_allocation.exam.date|date:"M d" }}
+                                            {% endif %}
+                                        {% empty %}
+                                            None
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-calendar-alt fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter and Search -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-light">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'invigilators:my_assignments' %}" 
+                                   class="btn {% if not selected_status %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                                    All ({{ total_count }})
+                                </a>
+                                <a href="?status=accepted" 
+                                   class="btn {% if selected_status == 'accepted' %}btn-success{% else %}btn-outline-success{% endif %}">
+                                    Accepted ({{ accepted_count }})
+                                </a>
+                                <a href="?status=pending" 
+                                   class="btn {% if selected_status == 'pending' %}btn-warning{% else %}btn-outline-warning{% endif %}">
+                                    Pending ({{ pending_count }})
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <button class="btn btn-outline-info btn-sm" onclick="refreshAssignments()">
+                                <i class="fas fa-sync-alt me-1"></i> Refresh
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="exportAssignments()">
+                                <i class="fas fa-download me-1"></i> Export
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assignments Table -->
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>
+                        {% if selected_status == 'accepted' %}Accepted{% elif selected_status == 'pending' %}Pending{% else %}All{% endif %} Assignments
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if assignments %}
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="assignmentsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Exam</th>
+                                        <th>Course</th>
+                                        <th>Venue</th>
+                                        <th>Date</th>
+                                        <th>Time</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for assignment in assignments %}
+                                    <tr>
+                                        <td>
+                                            <a href="#" class="text-decoration-none">
+                                                {{ assignment.exam_allocation.exam.title }}
+                                            </a>
+                                            {% if assignment.exam_allocation.exam.date < today %}
+                                                <span class="badge bg-secondary ms-1">Past</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ assignment.exam_allocation.exam.course.code }}</td>
+                                        <td>{{ assignment.exam_allocation.venue.name }}</td>
+                                        <td>{{ assignment.exam_allocation.exam.date|date:"M d, Y" }}</td>
+                                        <td>{{ assignment.exam_allocation.exam.start_time|date:"H:i" }} - {{ assignment.exam_allocation.exam.end_time|date:"H:i" }}</td>
+                                        <td>
+                                            {% if assignment.has_accepted %}
+                                                <span class="badge bg-success">Accepted</span>
+                                            {% else %}
+                                                <span class="badge bg-warning">Pending</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-primary btn-sm" onclick="viewAssignmentDetails({{ assignment.id }})">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                {% if not assignment.has_accepted %}
+                                                <a href="{% url 'invigilators:accept_assignment' assignment.id %}" class="btn btn-outline-success btn-sm">
+                                                    <i class="fas fa-check"></i>
+                                                </a>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+                            <h4 class="text-muted">No Assignments Found</h4>
+                            {% if selected_status == 'accepted' %}
+                                <p class="text-muted">You haven't accepted any assignments yet.</p>
+                            {% elif selected_status == 'pending' %}
+                                <p class="text-muted">You have no pending assignments.</p>
+                            {% else %}
+                                <p class="text-muted">You don't have any exam assignments yet.</p>
+                            {% endif %}
+                            <a href="{% url 'invigilators:invigilator_list' %}" class="btn btn-primary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Invigilators
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Assignment Details Modal -->
+<div class="modal fade" id="assignmentDetailsModal" tabindex="-1" aria-labelledby="assignmentDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="assignmentDetailsModalLabel">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Assignment Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="assignmentDetailsContent">
+                <!-- Assignment details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success" id="acceptAssignmentBtn">
+                    <i class="fas fa-check me-2"></i>Accept Assignment
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.border-left-primary {
+    border-left: 4px solid #4e73df !important;
+}
+.border-left-success {
+    border-left: 4px solid #1cc88a !important;
+}
+.border-left-warning {
+    border-left: 4px solid #f6c23e !important;
+}
+.border-left-info {
+    border-left: 4px solid #36b9cc !important;
+}
+.text-xs {
+    font-size: 0.7rem;
+}
+.font-weight-bold {
+    font-weight: 700 !important;
+}
+.text-gray-800 {
+    color: #5a5c69 !important;
+}
+.text-gray-300 {
+    color: #dddfeb !important;
+}
+</style>
+
+<script>
+// View assignment details
+function viewAssignmentDetails(assignmentId) {
+    fetch(`/invigilators/api/assignment-details/${assignmentId}/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const assignment = data.assignment;
+                const content = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Exam Information</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Title:</strong></td>
+                                    <td>${assignment.exam_title}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Course:</strong></td>
+                                    <td>${assignment.course_code} - ${assignment.course_name}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Date:</strong></td>
+                                    <td>${new Date(assignment.exam_date).toLocaleDateString()}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Time:</strong></td>
+                                    <td>${assignment.exam_start_time} - ${assignment.exam_end_time}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Duration:</strong></td>
+                                    <td>${assignment.exam_duration} minutes</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Venue Information</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Venue:</strong></td>
+                                    <td>${assignment.venue_name}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Code:</strong></td>
+                                    <td>${assignment.venue_code}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Capacity:</strong></td>
+                                    <td>${assignment.venue_capacity}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Building:</strong></td>
+                                    <td>${assignment.venue_building || 'N/A'}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Floor:</strong></td>
+                                    <td>${assignment.venue_floor || 'N/A'}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <h6>Assignment Status</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Status:</strong></td>
+                                <td>
+                                    <span class="badge bg-${assignment.has_accepted ? 'success' : 'warning'}">
+                                        ${assignment.has_accepted ? 'Accepted' : 'Pending'}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Assigned Date:</strong></td>
+                                <td>${new Date(assignment.created_at).toLocaleString()}</td>
+                            </tr>
+                            {% if assignment.accepted_at %}
+                            <tr>
+                                <td><strong>Accepted Date:</strong></td>
+                                <td>${new Date(assignment.accepted_at).toLocaleString()}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                `;
+                
+                document.getElementById('assignmentDetailsContent').innerHTML = content;
+                
+                // Set accept button
+                const acceptBtn = document.getElementById('acceptAssignmentBtn');
+                if (assignment.has_accepted) {
+                    acceptBtn.style.display = 'none';
+                } else {
+                    acceptBtn.style.display = 'block';
+                    acceptBtn.onclick = function() {
+                        window.location.href = `/invigilators/assignments/${assignmentId}/accept/`;
+                    };
+                }
+                
+                const modal = new bootstrap.Modal(document.getElementById('assignmentDetailsModal'));
+                modal.show();
+            } else {
+                alert('Error loading assignment details: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error loading assignment details:', error);
+            alert('Error loading assignment details. Please try again.');
+        });
+}
+
+// Refresh assignments
+function refreshAssignments() {
+    location.reload();
+}
+
+// Export assignments
+function exportAssignments() {
+    const format = prompt('Choose export format:\n1. Excel (xlsx)\n2. PDF\n3. CSV\n\nEnter 1, 2, or 3:', '1');
+    
+    if (format === null) return;
+    
+    let url = '/invigilators/export-assignments/';
+    let params = new URLSearchParams();
+    
+    switch(format) {
+        case '1':
+            params.append('format', 'xlsx');
+            break;
+        case '2':
+            params.append('format', 'pdf');
+            break;
+        case '3':
+            params.append('format', 'csv');
+            break;
+        default:
+            alert('Invalid format. Please enter 1, 2, or 3.');
+            return;
+    }
+    
+    if (selected_status) {
+        params.append('status', selected_status);
+    }
+    
+    window.open(url + '?' + params.toString(), '_blank');
+}
+</script>
+{% endblock %}

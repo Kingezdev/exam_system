@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}Generate Seating Plan - PLASU Exam System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-chair me-2"></i>
+                Generate Seating Plan
+            </h2>
+            <a href="{% url 'reports:dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-list-ol me-2"></i>
+                    Select Exam
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="exam" class="form-label">Exam</label>
+                        <select name="exam" id="exam" class="form-select" required>
+                            <option value="">Select an exam...</option>
+                            {% for exam in exams %}
+                            <option value="{{ exam.id }}">
+                                {{ exam.course.code }} - {{ exam.course.title }} ({{ exam.date }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Choose an exam that has been allocated with seating arrangements.</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-chair me-2"></i>
+                            Generate Seating Plan PDF
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Information
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="small">
+                    <strong>What this report contains:</strong>
+                </p>
+                <ul class="small">
+                    <li>Student seat numbers</li>
+                    <li>Student names and IDs</li>
+                    <li>Exam venue layout</li>
+                    <li>Exam details (date, time, course)</li>
+                    <li>Invigilator assignments</li>
+                </ul>
+                
+                <p class="small text-muted">
+                    <strong>Note:</strong> Only exams with completed allocations will appear in the list.
+                </p>
+            </div>
+        </div>
+        
+        <div class="card shadow mt-3">
+            <div class="card-header bg-warning text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Requirements
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="small">
+                    Before generating a seating plan, ensure that:
+                </p>
+                <ul class="small">
+                    <li>Exams have been created</li>
+                    <li>Venues have been allocated</li>
+                    <li>Students have been allocated to seats</li>
+                    <li>Invigilators have been assigned</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card shadow mt-3">
+            <div class="card-header bg-success text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    Usage Tips
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="small">
+                    <strong>Best practices:</strong>
+                </p>
+                <ul class="small">
+                    <li>Generate seating plans before exam day</li>
+                    <li>Print copies for invigilators</li>
+                    <li>Post seating plans outside exam venues</li>
+                    <li>Keep digital copies for records</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,558 @@
+{% extends 'base.html' %}
+
+{% block title %}Reports Dashboard - PLASU Exam System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>
+            <i class="fas fa-chart-pie me-2"></i>
+            Reports Dashboard
+        </h2>
+        <p class="text-muted">Generate and manage examination reports, analytics, and PDF exports.</p>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Total Reports
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ total_reports|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-file-alt fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Generated Today
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ generated_today|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar-check fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Scheduled Reports
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ scheduled_reports|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-clock fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Templates
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ report_templates|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-layer-group fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt me-2"></i>
+                    Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light border">
+                            <div class="card-body text-center">
+                                <i class="fas fa-file-pdf fa-3x text-danger mb-3"></i>
+                                <h6>Exam Timetable</h6>
+                                <p class="small">Generate exam timetable PDF</p>
+                                <a href="{% url 'reports:generate_timetable' %}" class="btn btn-danger btn-sm">
+                                    Generate
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light border">
+                            <div class="card-body text-center">
+                                <i class="fas fa-chair fa-3x text-primary mb-3"></i>
+                                <h6>Seating Plans</h6>
+                                <p class="small">Generate seating plan reports</p>
+                                <a href="{% url 'reports:generate_seating' %}" class="btn btn-primary btn-sm">
+                                    Generate
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light border">
+                            <div class="card-body text-center">
+                                <i class="fas fa-user-tie fa-3x text-success mb-3"></i>
+                                <h6>Invigilator Schedule</h6>
+                                <p class="small">Generate invigilator reports</p>
+                                <a href="{% url 'reports:generate_invigilator' %}" class="btn btn-success btn-sm">
+                                    Generate
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light border">
+                            <div class="card-body text-center">
+                                <i class="fas fa-chart-bar fa-3x text-warning mb-3"></i>
+                                <h6>Analytics</h6>
+                                <p class="small">View system analytics</p>
+                                <a href="{% url 'reports:analytics' %}" class="btn btn-warning btn-sm">
+                                    View Analytics
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Reports -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-history me-2"></i>
+                    Recent Reports
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_reports %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Report Type</th>
+                                <th>Title</th>
+                                <th>Generated By</th>
+                                <th>Generated At</th>
+                                <th>File Size</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for report in recent_reports %}
+                            <tr>
+                                <td>
+                                    <span class="badge bg-{{ report.report_type|yesno:'primary,success,warning,info,danger' }}">
+                                        {{ report.get_report_type_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong>{{ report.title }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ report.description|default:"No description" }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px; font-size: 12px;">
+                                            {{ report.generated_by.first_name.0|default:report.generated_by.username.0|upper }}{{ report.generated_by.last_name.0|default:"" }}
+                                        </div>
+                                        <div>
+                                            <strong>{{ report.generated_by.get_full_name|default:report.generated_by.username }}</strong>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ report.generated_at|date:"M d, Y H:i" }}</td>
+                                <td>
+                                    {% if report.file_size %}
+                                        {{ report.file_size|filesizeformat }}
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        {% if report.file %}
+                                        <a href="{{ report.file.url }}" class="btn btn-sm btn-success" title="Download" target="_blank">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                        {% endif %}
+                                        <a href="{% url 'reports:report_detail' report.id %}" class="btn btn-sm btn-info" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <button class="btn btn-sm btn-warning" title="Regenerate">
+                                            <i class="fas fa-sync"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <i class="fas fa-file-alt fa-2x text-muted mb-2"></i>
+                    <p class="text-muted">No reports generated yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card shadow mb-3">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fas fa-tasks me-2"></i>
+                    Scheduled Reports
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if scheduled_reports_list %}
+                <div class="list-group">
+                    {% for schedule in scheduled_reports_list %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ schedule.template.name }}</h6>
+                            <span class="badge bg-{{ schedule.is_active|yesno:'success,secondary' }}">
+                                {{ schedule.is_active|yesno:"Active,Inactive" }}
+                            </span>
+                        </div>
+                        <p class="mb-1">{{ schedule.get_frequency_display }}</p>
+                        <small class="text-muted">Next run: {{ schedule.next_run|date:"M d, Y H:i" }}</small>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center">
+                    <p class="text-muted">No scheduled reports</p>
+                    <a href="{% url 'reports:schedule_report' %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus me-2"></i>
+                        Schedule Report
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>
+                    Report Statistics
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="reportStatsChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Templates -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-layer-group me-2"></i>
+                    Report Templates
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for template in report_templates_list %}
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-light">
+                            <div class="card-body text-center">
+                                <i class="fas fa-{{ template.icon|default:'file-alt' }} fa-3x text-{{ template.color|default:'primary' }} mb-3"></i>
+                                <h6>{{ template.name }}</h6>
+                                <p class="small">{{ template.description|default:"No description" }}</p>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'reports:generate_from_template' template.id %}" class="btn btn-{{ template.color|default:'primary' }} btn-sm">
+                                        Generate
+                                    </a>
+                                    <a href="{% url 'reports:template_detail' template.id %}" class="btn btn-outline-secondary btn-sm">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="mt-3">
+                    <a href="{% url 'reports:template_list' %}" class="btn btn-primary">
+                        <i class="fas fa-th-list me-2"></i>
+                        View All Templates
+                    </a>
+                    <a href="{% url 'reports:template_create' %}" class="btn btn-success">
+                        <i class="fas fa-plus me-2"></i>
+                        Create Template
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Popular Reports -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-fire me-2"></i>
+                    Popular Reports
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Most Generated Reports</h6>
+                        <div class="list-group">
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>Exam Timetable</strong>
+                                    <br>
+                                    <small class="text-muted">Complete examination schedule</small>
+                                </div>
+                                <span class="badge bg-primary">45</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>Seating Plans</strong>
+                                    <br>
+                                    <small class="text-muted">Venue seating arrangements</small>
+                                </div>
+                                <span class="badge bg-primary">32</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>Invigilator Schedule</strong>
+                                    <br>
+                                    <small class="text-muted">Invigilator assignments</small>
+                                </div>
+                                <span class="badge bg-primary">28</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h6>Recent Activity</h6>
+                        <div class="list-group">
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">
+                                        <i class="fas fa-file-pdf text-danger me-2"></i>
+                                        Final Exam Timetable Generated
+                                    </h6>
+                                    <small>2 hours ago</small>
+                                </div>
+                                <p class="mb-1">Generated by Admin User</p>
+                            </div>
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">
+                                        <i class="fas fa-chair text-primary me-2"></i>
+                                        CSC201 Seating Plan Updated
+                                    </h6>
+                                    <small>5 hours ago</small>
+                                </div>
+                                <p class="mb-1">Updated by Exam Officer</p>
+                            </div>
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">
+                                        <i class="fas fa-user-tie text-success me-2"></i>
+                                        Weekly Invigilator Report
+                                    </h6>
+                                    <small>1 day ago</small>
+                                </div>
+                                <p class="mb-1">Generated automatically</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System Analytics -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    System Analytics Overview
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6>Report Generation Trend</h6>
+                        <canvas id="trendChart" width="400" height="200"></canvas>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Report Type Distribution</h6>
+                        <canvas id="typeChart" width="400" height="200"></canvas>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>User Activity</h6>
+                        <canvas id="userChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Report Statistics Chart
+const statsCtx = document.getElementById('reportStatsChart').getContext('2d');
+const statsChart = new Chart(statsCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Generated Today', 'This Week', 'This Month', 'Total'],
+        datasets: [{
+            data: [12, 45, 128, 245],
+            backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e']
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// Trend Chart
+const trendCtx = document.getElementById('trendChart').getContext('2d');
+const trendChart = new Chart(trendCtx, {
+    type: 'line',
+    data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [{
+            label: 'Reports Generated',
+            data: [12, 19, 15, 25, 22, 30, 28],
+            borderColor: '#4e73df',
+            backgroundColor: 'rgba(78, 115, 223, 0.1)',
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Type Distribution Chart
+const typeCtx = document.getElementById('typeChart').getContext('2d');
+const typeChart = new Chart(typeCtx, {
+    type: 'pie',
+    data: {
+        labels: ['Timetable', 'Seating', 'Invigilator', 'Analytics', 'Other'],
+        datasets: [{
+            data: [35, 25, 20, 15, 5],
+            backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b']
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// User Activity Chart
+const userCtx = document.getElementById('userChart').getContext('2d');
+const userChart = new Chart(userCtx, {
+    type: 'bar',
+    data: {
+        labels: ['Admin', 'Exam Officer', 'Invigilator', 'Student'],
+        datasets: [{
+            label: 'Reports Generated',
+            data: [45, 32, 8, 2],
+            backgroundColor: '#4e73df'
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

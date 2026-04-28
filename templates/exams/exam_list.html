@@ -1,0 +1,388 @@
+{% extends 'base.html' %}
+
+{% block title %}Exams - PLASU Exam System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-clipboard-list me-2"></i>
+                Examinations
+            </h2>
+            <a href="{% url 'exams:exam_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>
+                Schedule Exam
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-light">
+                <h6 class="mb-0">
+                    <i class="fas fa-filter me-2"></i>
+                    Filter Exams
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="session" class="form-label">Exam Session</label>
+                        <select name="session" id="session" class="form-select">
+                            <option value="">All Sessions</option>
+                            {% for session in sessions %}
+                            <option value="{{ session.id }}" {% if request.GET.session == session.id|stringformat:"s" %}selected{% endif %}>
+                                {{ session.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="exam_type" class="form-label">Exam Type</label>
+                        <select name="exam_type" id="exam_type" class="form-select">
+                            <option value="">All Types</option>
+                            <option value="continuous" {% if request.GET.exam_type == "continuous" %}selected{% endif %}>Continuous Assessment</option>
+                            <option value="mid_semester" {% if request.GET.exam_type == "mid_semester" %}selected{% endif %}>Mid-Semester</option>
+                            <option value="final" {% if request.GET.exam_type == "final" %}selected{% endif %}>Final</option>
+                            <option value="supplementary" {% if request.GET.exam_type == "supplementary" %}selected{% endif %}>Supplementary</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="start_date" class="form-label">Start Date</label>
+                        <input type="date" name="start_date" id="start_date" class="form-control" value="{{ request.GET.start_date }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="end_date" class="form-label">End Date</label>
+                        <input type="date" name="end_date" id="end_date" class="form-control" value="{{ request.GET.end_date }}">
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-search me-1"></i>
+                            Search
+                        </button>
+                        <a href="{% url 'exams:exam_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-1"></i>
+                            Clear
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    All Examinations
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if exams %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Course</th>
+                                <th>Exam Type</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Duration</th>
+                                <th>Venue</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for exam in exams %}
+                            <tr>
+                                <td>
+                                    <div>
+                                        <span class="badge bg-info">{{ exam.course.code }}</span>
+                                        <br>
+                                        <strong>{{ exam.course.name }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ exam.course.department.name }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ exam.exam_type|yesno:'primary,secondary,warning,danger' }}">
+                                        {{ exam.get_exam_type_display }}
+                                    </span>
+                                </td>
+                                <td>{{ exam.date|date:"M d, Y" }}</td>
+                                <td>
+                                    {{ exam.start_time }} - {{ exam.end_time }}
+                                </td>
+                                <td>{{ exam.duration_minutes }} min</td>
+                                <td>
+                                    {% if exam.allocation %}
+                                        {{ exam.allocation.venue.name }}
+                                    {% else %}
+                                        <span class="text-muted">Not Allocated</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if exam.is_published %}
+                                        <span class="badge bg-success">Published</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Draft</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'exams:exam_detail' exam.id %}" class="btn btn-sm btn-info" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'exams:upload_question_paper' exam.id %}" class="btn btn-sm btn-success" title="Upload Paper">
+                                            <i class="fas fa-file-upload"></i>
+                                        </a>
+                                        <a href="{% url 'exams:exam_attendance' exam.id %}" class="btn btn-sm btn-warning" title="Attendance">
+                                            <i class="fas fa-user-check"></i>
+                                        </a>
+                                        <a href="{% url 'exams:exam_update' exam.id %}" class="btn btn-sm btn-primary" title="Edit Exam">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                    <h5>No Exams Found</h5>
+                    <p class="text-muted">Start by scheduling your first examination.</p>
+                    <a href="{% url 'exams:exam_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>
+                        Schedule First Exam
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mt-4">
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Total Exams
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ exams.count }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Published Exams
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ published_exams|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-bullhorn fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Upcoming Exams
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ upcoming_exams|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar-alt fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Conflicts
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ conflicts|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Exam Calendar View -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar me-2"></i>
+                    Exam Calendar
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="examCalendar"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Exam Distribution Chart -->
+<div class="row mt-4">
+    <div class="col-lg-6">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    Exams by Type
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="examTypeChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="card shadow">
+            <div class="card-header bg-warning text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Exams by Department
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="departmentChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Exam Type Distribution Chart
+const typeCtx = document.getElementById('examTypeChart').getContext('2d');
+const typeChart = new Chart(typeCtx, {
+    type: 'pie',
+    data: {
+        labels: ['Final', 'Mid-Semester', 'Continuous Assessment', 'Supplementary'],
+        datasets: [{
+            data: [45, 25, 20, 10],
+            backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e']
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// Department Distribution Chart
+const deptCtx = document.getElementById('departmentChart').getContext('2d');
+const deptChart = new Chart(deptCtx, {
+    type: 'bar',
+    data: {
+        labels: ['Computer Science', 'Mathematics', 'Physics', 'Chemistry', 'Biology'],
+        datasets: [{
+            label: 'Number of Exams',
+            data: [15, 12, 8, 10, 6],
+            backgroundColor: '#4e73df'
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Simple Calendar View
+const calendarDiv = document.getElementById('examCalendar');
+const today = new Date();
+const currentMonth = today.getMonth();
+const currentYear = today.getFullYear();
+const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+let calendarHTML = '<div class="table-responsive"><table class="table table-bordered"><thead><tr>';
+const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+weekDays.forEach(day => {
+    calendarHTML += `<th>${day}</th>`;
+});
+calendarHTML += '</tr></thead><tbody>';
+
+let date = 1;
+for (let i = 0; i < 6; i++) {
+    calendarHTML += '<tr>';
+    for (let j = 0; j < 7; j++) {
+        if (date > daysInMonth) {
+            calendarHTML += '<td></td>';
+        } else {
+            const isToday = date === today.getDate();
+            const hasExam = Math.random() > 0.7; // Random exam indicator
+            calendarHTML += `<td class="${isToday ? 'table-primary' : ''} ${hasExam ? 'table-warning' : ''}">${date}</td>`;
+            date++;
+        }
+    }
+    calendarHTML += '</tr>';
+    if (date > daysInMonth) break;
+}
+
+calendarHTML += '</tbody></table></div>';
+calendarDiv.innerHTML = calendarHTML;
+</script>
+{% endblock %}

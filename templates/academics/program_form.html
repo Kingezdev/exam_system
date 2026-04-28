@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }} - PLASU Exam System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-graduation-cap me-2"></i>
+                {{ title }}
+            </h2>
+            <a href="{% url 'academics:program_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>
+                Back to Programs
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-edit me-2"></i>
+                    Program Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>
+                            {% if "Create" in title %}
+                                Create Program
+                            {% else %}
+                                Update Program
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Program Information
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="small">
+                    <strong>What is a program?</strong>
+                </p>
+                <p class="small">
+                    An academic program is a structured course of study leading to a degree or certificate. Programs are typically organized by departments and include specific requirements for completion.
+                </p>
+                
+                <p class="small">
+                    <strong>Program details:</strong>
+                </p>
+                <ul class="small">
+                    <li><strong>Name:</strong> Full program name (e.g., Bachelor of Science in Computer Science)</li>
+                    <li><strong>Code:</strong> Short identifier (e.g., BSCS)</li>
+                    <li><strong>Department:</strong> Academic department offering the program</li>
+                    <li><strong>Duration:</strong> Length of study in years</li>
+                    <li><strong>Description:</strong> Program overview and objectives</li>
+                </ul>
+                
+                <div class="alert alert-light small">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>Tip:</strong> Make sure the program code is unique and follows your institution's naming conventions.
+                </div>
+            </div>
+        </div>
+        
+        <div class="card shadow">
+            <div class="card-header bg-warning text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Guidelines
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="small">
+                    <strong>Before creating a program:</strong>
+                </p>
+                <ul class="small">
+                    <li>Ensure the department exists</li>
+                    <li>Verify program code uniqueness</li>
+                    <li>Prepare program description</li>
+                    <li>Confirm duration requirements</li>
+                </ul>
+                
+                <div class="alert alert-warning small">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Important:</strong> Programs with existing enrollments cannot be easily modified. Ensure all details are correct before creation.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

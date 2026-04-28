@@ -1,0 +1,461 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">{{ title }}</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'reports:report_list' %}">Reports</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'reports:scheduled_reports' %}">Scheduled Reports</a></li>
+                        <li class="breadcrumb-item active">{{ title }}</li>
+                    </ol>
+                </nav>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card shadow">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-calendar-plus me-2"></i>
+                                {{ title }}
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" id="scheduleForm">
+                                {% csrf_token %}
+                                
+                                <!-- Basic Information -->
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.name.id_for_label }}" class="form-label fw-bold">
+                                                <i class="fas fa-tag me-2"></i>{{ form.name.label }}
+                                            </label>
+                                            {{ form.name }}
+                                            {% if form.name.errors %}
+                                                <div class="text-danger small mt-1">
+                                                    {{ form.name.errors }}
+                                                </div>
+                                            {% endif %}
+                                            <div class="form-text">A descriptive name for this scheduled report.</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.template.id_for_label }}" class="form-label fw-bold">
+                                                <i class="fas fa-file-alt me-2"></i>{{ form.template.label }}
+                                            </label>
+                                            {{ form.template }}
+                                            {% if form.template.errors %}
+                                                <div class="text-danger small mt-1">
+                                                    {{ form.template.errors }}
+                                                </div>
+                                            {% endif %}
+                                            <div class="form-text">Select the type of report to generate.</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Description -->
+                                <div class="mb-4">
+                                    <label for="{{ form.description.id_for_label }}" class="form-label fw-bold">
+                                        <i class="fas fa-align-left me-2"></i>{{ form.description.label }}
+                                    </label>
+                                    {{ form.description }}
+                                    {% if form.description.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {{ form.description.errors }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">Optional description of what this schedule does.</div>
+                                </div>
+
+                                <!-- Schedule Configuration -->
+                                <div class="card mb-4">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-clock me-2"></i>
+                                            Schedule Configuration
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label for="{{ form.frequency.id_for_label }}" class="form-label fw-bold">
+                                                        <i class="fas fa-sync-alt me-2"></i>{{ form.frequency.label }}
+                                                    </label>
+                                                    {{ form.frequency }}
+                                                    {% if form.frequency.errors %}
+                                                        <div class="text-danger small mt-1">
+                                                            {{ form.frequency.errors }}
+                                                        </div>
+                                                    {% endif %}
+                                                    <div class="form-text">How often to generate the report.</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label for="{{ form.run_time.id_for_label }}" class="form-label fw-bold">
+                                                        <i class="fas fa-clock me-2"></i>{{ form.run_time.label }}
+                                                    </label>
+                                                    {{ form.run_time }}
+                                                    {% if form.run_time.errors %}
+                                                        <div class="text-danger small mt-1">
+                                                            {{ form.run_time.errors }}
+                                                        </div>
+                                                    {% endif %}
+                                                    <div class="form-text">Time of day to run the report.</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <div class="form-check mt-4">
+                                                        {{ form.is_active }}
+                                                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                                            {{ form.is_active.label }}
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-text">Enable this schedule immediately.</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Conditional fields based on frequency -->
+                                        <div id="frequencyFields">
+                                            <!-- Weekly fields -->
+                                            <div id="weeklyFields" style="display: none;" class="mt-3">
+                                                <label for="{{ form.day_of_week.id_for_label }}" class="form-label fw-bold">
+                                                    <i class="fas fa-calendar-day me-2"></i>{{ form.day_of_week.label }}
+                                                </label>
+                                                {{ form.day_of_week }}
+                                                {% if form.day_of_week.errors %}
+                                                    <div class="text-danger small mt-1">
+                                                        {{ form.day_of_week.errors }}
+                                                    </div>
+                                                {% endif %}
+                                                <div class="form-text">Day of the week to run the report.</div>
+                                            </div>
+
+                                            <!-- Monthly fields -->
+                                            <div id="monthlyFields" style="display: none;" class="mt-3">
+                                                <label for="{{ form.day_of_month.id_for_label }}" class="form-label fw-bold">
+                                                    <i class="fas fa-calendar me-2"></i>{{ form.day_of_month.label }}
+                                                </label>
+                                                {{ form.day_of_month }}
+                                                {% if form.day_of_month.errors %}
+                                                    <div class="text-danger small mt-1">
+                                                        {{ form.day_of_month.errors }}
+                                                    </div>
+                                                {% endif %}
+                                                <div class="form-text">Day of the month to run the report (1-31).</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Recipients -->
+                                <div class="card mb-4">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-envelope me-2"></i>
+                                            Email Recipients
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="{{ form.recipients.id_for_label }}" class="form-label fw-bold">
+                                                <i class="fas fa-users me-2"></i>{{ form.recipients.label }}
+                                            </label>
+                                            {{ form.recipients }}
+                                            {% if form.recipients.errors %}
+                                                <div class="text-danger small mt-1">
+                                                    {{ form.recipients.errors }}
+                                                </div>
+                                            {% endif %}
+                                            <div class="form-text">Email addresses to receive the generated report. Separate multiple emails with commas.</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Parameters -->
+                                <div class="card mb-4">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-cog me-2"></i>
+                                            Report Parameters
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="{{ form.parameters.id_for_label }}" class="form-label fw-bold">
+                                                <i class="fas fa-sliders-h me-2"></i>{{ form.parameters.label }}
+                                            </label>
+                                            {{ form.parameters }}
+                                            {% if form.parameters.errors %}
+                                                <div class="text-danger small mt-1">
+                                                    {{ form.parameters.errors }}
+                                                </div>
+                                            {% endif %}
+                                            <div class="form-text">JSON parameters for the report generation. Leave empty for default parameters.</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Submit Buttons -->
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'reports:scheduled_reports' %}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>Cancel
+                                    </a>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-outline-primary" onclick="previewSchedule()">
+                                            <i class="fas fa-eye me-2"></i>Preview
+                                        </button>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save me-2"></i>Create Schedule
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <!-- Help Information -->
+                    <div class="card shadow mb-4">
+                        <div class="card-header bg-info text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-question-circle me-2"></i>
+                                Schedule Configuration Help
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <h6 class="text-primary">Frequency Options</h6>
+                                <ul class="small">
+                                    <li><strong>Daily:</strong> Runs every day at the specified time</li>
+                                    <li><strong>Weekly:</strong> Runs once per week on the selected day</li>
+                                    <li><strong>Monthly:</strong> Runs once per month on the selected day</li>
+                                </ul>
+                            </div>
+                            <div class="mb-3">
+                                <h6 class="text-primary">Time Zone</h6>
+                                <p class="small">All schedules run in the server's local time zone.</p>
+                            </div>
+                            <div>
+                                <h6 class="text-primary">Email Delivery</h6>
+                                <p class="small">Reports will be automatically emailed to the specified recipients when generated.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Schedule Preview -->
+                    <div class="card shadow mb-4">
+                        <div class="card-header bg-warning text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-calendar-check me-2"></i>
+                                Next Run Times
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="nextRunPreview">
+                                <p class="text-muted small">Configure the schedule above to see the next run times.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Schedules -->
+                    <div class="card shadow">
+                        <div class="card-header bg-secondary text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-history me-2"></i>
+                                Recent Schedules
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group list-group-flush">
+                                <div class="list-group-item text-center text-muted">
+                                    <small>No recent schedules available</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Toggle frequency-specific fields
+function toggleFrequencyFields() {
+    const frequency = document.getElementById('{{ form.frequency.id_for_label }}').value;
+    const weeklyFields = document.getElementById('weeklyFields');
+    const monthlyFields = document.getElementById('monthlyFields');
+    
+    // Hide all frequency-specific fields
+    weeklyFields.style.display = 'none';
+    monthlyFields.style.display = 'none';
+    
+    // Show relevant fields based on frequency
+    if (frequency === 'weekly') {
+        weeklyFields.style.display = 'block';
+    } else if (frequency === 'monthly') {
+        monthlyFields.style.display = 'block';
+    }
+    
+    updateNextRunPreview();
+}
+
+// Update next run preview
+function updateNextRunPreview() {
+    const frequency = document.getElementById('{{ form.frequency.id_for_label }}').value;
+    const runTime = document.getElementById('{{ form.run_time.id_for_label }}').value;
+    const previewDiv = document.getElementById('nextRunPreview');
+    
+    if (!frequency || !runTime) {
+        previewDiv.innerHTML = '<p class="text-muted small">Configure the schedule above to see the next run times.</p>';
+        return;
+    }
+    
+    const now = new Date();
+    const [hours, minutes] = runTime.split(':');
+    
+    let nextRun = new Date();
+    nextRun.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+    
+    if (frequency === 'daily') {
+        if (nextRun <= now) {
+            nextRun.setDate(nextRun.getDate() + 1);
+        }
+        previewDiv.innerHTML = `
+            <div class="mb-2">
+                <strong>Next Run:</strong><br>
+                <span class="text-primary">${nextRun.toLocaleString()}</span>
+            </div>
+            <div class="small text-muted">
+                Runs every day at ${runTime}
+            </div>
+        `;
+    } else if (frequency === 'weekly') {
+        const dayOfWeek = document.getElementById('{{ form.day_of_week.id_for_label }}').value;
+        // Simple calculation - in production, this would be more sophisticated
+        previewDiv.innerHTML = `
+            <div class="mb-2">
+                <strong>Next Run:</strong><br>
+                <span class="text-primary">Next ${dayOfWeek} at ${runTime}</span>
+            </div>
+            <div class="small text-muted">
+                Runs every ${dayOfWeek} at ${runTime}
+            </div>
+        `;
+    } else if (frequency === 'monthly') {
+        const dayOfMonth = document.getElementById('{{ form.day_of_month.id_for_label }}').value;
+        previewDiv.innerHTML = `
+            <div class="mb-2">
+                <strong>Next Run:</strong><br>
+                <span class="text-primary">Day ${dayOfMonth} of next month at ${runTime}</span>
+            </div>
+            <div class="small text-muted">
+                Runs on day ${dayOfMonth} of each month at ${runTime}
+            </div>
+        `;
+    }
+}
+
+// Preview schedule
+function previewSchedule() {
+    const form = document.getElementById('scheduleForm');
+    const formData = new FormData(form);
+    
+    let summary = 'Schedule Preview:\n\n';
+    summary += `Name: ${formData.get('name')}\n`;
+    summary += `Report Type: ${formData.get('template')}\n`;
+    summary += `Frequency: ${formData.get('frequency')}\n`;
+    summary += `Time: ${formData.get('run_time')}\n`;
+    summary += `Active: ${formData.get('is_active') ? 'Yes' : 'No'}\n`;
+    
+    if (formData.get('recipients')) {
+        summary += `Recipients: ${formData.get('recipients')}\n`;
+    }
+    
+    alert(summary);
+}
+
+// Initialize event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    const frequencySelect = document.getElementById('{{ form.frequency.id_for_label }}');
+    const runTimeInput = document.getElementById('{{ form.run_time.id_for_label }}');
+    
+    if (frequencySelect) {
+        frequencySelect.addEventListener('change', toggleFrequencyFields);
+    }
+    
+    if (runTimeInput) {
+        runTimeInput.addEventListener('change', updateNextRunPreview);
+    }
+    
+    // Initialize on page load
+    toggleFrequencyFields();
+});
+
+// Form validation
+document.getElementById('scheduleForm').addEventListener('submit', function(e) {
+    const frequency = document.getElementById('{{ form.frequency.id_for_label }}').value;
+    const runTime = document.getElementById('{{ form.run_time.id_for_label }}').value;
+    
+    if (!frequency) {
+        e.preventDefault();
+        alert('Please select a frequency.');
+        return;
+    }
+    
+    if (!runTime) {
+        e.preventDefault();
+        alert('Please select a run time.');
+        return;
+    }
+    
+    if (frequency === 'weekly') {
+        const dayOfWeek = document.getElementById('{{ form.day_of_week.id_for_label }}').value;
+        if (!dayOfWeek) {
+            e.preventDefault();
+            alert('Please select a day of the week for weekly schedules.');
+            return;
+        }
+    }
+    
+    if (frequency === 'monthly') {
+        const dayOfMonth = document.getElementById('{{ form.day_of_month.id_for_label }}').value;
+        if (!dayOfMonth || dayOfMonth < 1 || dayOfMonth > 31) {
+            e.preventDefault();
+            alert('Please enter a valid day of the month (1-31).');
+            return;
+        }
+    }
+});
+</script>
+
+<style>
+.form-control:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.text-primary {
+    color: #4e73df !important;
+}
+</style>
+{% endblock %}

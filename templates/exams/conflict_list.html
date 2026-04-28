@@ -1,0 +1,366 @@
+{% extends 'base.html' %}
+
+{% block title %}Exam Conflicts - PLASU Exam System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            Exam Conflicts
+        </h2>
+        <p class="text-muted">Detect and resolve scheduling conflicts to ensure smooth examination operations.</p>
+    </div>
+</div>
+
+<!-- Conflict Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                            Total Conflicts
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ conflicts.count }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Unresolved
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ unresolved_conflicts|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-clock fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Critical
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ critical_conflicts|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-bolt fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Resolved Today
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ resolved_today|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-light">
+                <h6 class="mb-0">
+                    <i class="fas fa-filter me-2"></i>
+                    Filter Conflicts
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="conflict_type" class="form-label">Conflict Type</label>
+                        <select name="conflict_type" id="conflict_type" class="form-select">
+                            <option value="">All Types</option>
+                            <option value="time_overlap" {% if request.GET.conflict_type == "time_overlap" %}selected{% endif %}>Time Overlap</option>
+                            <option value="same_students" {% if request.GET.conflict_type == "same_students" %}selected{% endif %}>Same Students</option>
+                            <option value="same_venue" {% if request.GET.conflict_type == "same_venue" %}selected{% endif %}>Same Venue</option>
+                            <option value="invigilator_conflict" {% if request.GET.conflict_type == "invigilator_conflict" %}selected{% endif %}>Invigilator Conflict</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="severity" class="form-label">Severity</label>
+                        <select name="severity" id="severity" class="form-select">
+                            <option value="">All Severities</option>
+                            <option value="critical" {% if request.GET.severity == "critical" %}selected{% endif %}>Critical</option>
+                            <option value="high" {% if request.GET.severity == "high" %}selected{% endif %}>High</option>
+                            <option value="medium" {% if request.GET.severity == "medium" %}selected{% endif %}>Medium</option>
+                            <option value="low" {% if request.GET.severity == "low" %}selected{% endif %}>Low</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select name="status" id="status" class="form-select">
+                            <option value="">All Status</option>
+                            <option value="resolved" {% if request.GET.status == "resolved" %}selected{% endif %}>Resolved</option>
+                            <option value="unresolved" {% if request.GET.status == "unresolved" %}selected{% endif %}>Unresolved</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-search me-1"></i>
+                            Search
+                        </button>
+                        <a href="{% url 'exams:conflict_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-1"></i>
+                            Clear
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Conflicts List -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    All Conflicts
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if conflicts %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Exams Involved</th>
+                                <th>Description</th>
+                                <th>Severity</th>
+                                <th>Status</th>
+                                <th>Detected</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for conflict in conflicts %}
+                            <tr class="{% if conflict.severity == 'critical' %}table-danger{% elif conflict.severity == 'high' %}table-warning{% endif %}">
+                                <td>
+                                    <span class="badge bg-{{ conflict.severity|yesno:'danger,warning,info,secondary' }}">
+                                        {{ conflict.get_conflict_type_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong>{{ conflict.exam1.course.code }}</strong>
+                                        <small class="text-muted d-block">{{ conflict.exam1.course.name }}</small>
+                                        <small class="text-muted d-block">{{ conflict.exam1.date|date:"M d, Y" }} {{ conflict.exam1.start_time }}</small>
+                                    </div>
+                                    <div class="mt-1">
+                                        <strong>vs</strong>
+                                    </div>
+                                    <div>
+                                        <strong>{{ conflict.exam2.course.code }}</strong>
+                                        <small class="text-muted d-block">{{ conflict.exam2.course.name }}</small>
+                                        <small class="text-muted d-block">{{ conflict.exam2.date|date:"M d, Y" }} {{ conflict.exam2.start_time }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="text-truncate d-inline-block" style="max-width: 200px;">
+                                        {{ conflict.description }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ conflict.severity|yesno:'danger,warning,info,secondary' }}">
+                                        {{ conflict.severity|title }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if conflict.is_resolved %}
+                                        <span class="badge bg-success">Resolved</span>
+                                        {% if conflict.resolved_at %}
+                                            <br>
+                                            <small class="text-muted">{{ conflict.resolved_at|date:"M d, Y" }}</small>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="badge bg-warning">Unresolved</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ conflict.detected_at|date:"M d, Y H:i" }}</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'exams:resolve_conflict' conflict.id %}" class="btn btn-sm btn-warning" title="Resolve Conflict">
+                                            <i class="fas fa-check"></i>
+                                        </a>
+                                        <a href="#" class="btn btn-sm btn-info" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <button class="btn btn-sm btn-danger" title="Delete Conflict">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-check-circle fa-3x text-muted mb-3"></i>
+                    <h5>No Conflicts Found</h5>
+                    <p class="text-muted">Great! No scheduling conflicts detected.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Conflict Resolution Guide -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    Conflict Resolution Guide
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-clock me-2"></i>Time Overlap Conflicts</h6>
+                        <p>When exams are scheduled at the same time for the same students. Resolution options:</p>
+                        <ul>
+                            <li>Reschedule one of the exams to a different time</li>
+                            <li>Change the exam date if possible</li>
+                            <li>Split the exam into multiple sessions</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-users me-2"></i>Same Students Conflicts</h6>
+                        <p>When students have multiple exams scheduled simultaneously. Resolution options:</p>
+                        <ul>
+                            <li>Check if students are actually enrolled in both courses</li>
+                            <li>Coordinate with departments to resolve scheduling</li>
+                            <li>Consider alternative assessment methods</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-building me-2"></i>Venue Conflicts</h6>
+                        <p>When multiple exams are scheduled in the same venue. Resolution options:</p>
+                        <ul>
+                            <li>Reallocate one exam to a different venue</li>
+                            <li>Check venue availability and capacity</li>
+                            <li>Consider using multiple smaller venues</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-user-tie me-2"></i>Invigilator Conflicts</h6>
+                        <p>When invigilators are assigned to multiple exams simultaneously. Resolution options:</p>
+                        <ul>
+                            <li>Reassign invigilators based on availability</li>
+                            <li>Check invigilator workload limits</li>
+                            <li>Consider backup invigilator assignments</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Auto-Detection Settings -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-cog me-2"></i>
+                    Conflict Detection Settings
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="autoDetect" checked>
+                            <label class="form-check-label" for="autoDetect">
+                                Auto-detect conflicts when scheduling exams
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
+                            <label class="form-check-label" for="emailNotifications">
+                                Send email notifications for new conflicts
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="preventScheduling">
+                            <label class="form-check-label" for="preventScheduling">
+                                Prevent scheduling when conflicts detected
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <button class="btn btn-primary">
+                        <i class="fas fa-sync me-2"></i>
+                        Run Conflict Detection Now
+                    </button>
+                    <button class="btn btn-info">
+                        <i class="fas fa-download me-2"></i>
+                        Export Conflict Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

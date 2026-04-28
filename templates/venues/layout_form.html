@@ -1,0 +1,291 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Create Layout - {{ venue.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">Create Venue Layout</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'venues:venue_list' %}">Venues</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'venues:venue_detail' venue.id %}">{{ venue.name }}</a></li>
+                        <li class="breadcrumb-item active">Create Layout</li>
+                    </ol>
+                </nav>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card shadow">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-th me-2"></i>
+                                Create Layout for {{ venue.name }}
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-4">
+                                <h6>Venue Details</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Name:</strong> {{ venue.name }}</p>
+                                        <p><strong>Code:</strong> {{ venue.code }}</p>
+                                        <p><strong>Type:</strong> {{ venue.get_venue_type_display }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Building:</strong> {{ venue.building|default:"Not specified" }}</p>
+                                        <p><strong>Floor:</strong> {{ venue.floor|default:"Not specified" }}</p>
+                                        <p><strong>Capacity:</strong> {{ venue.capacity }} (Exam: {{ venue.exam_capacity }})</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% if active_layouts %}
+                            <div class="mb-4">
+                                <h6>Existing Layouts ({{ active_layouts.count }})</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Dimensions</th>
+                                                <th>Total Seats</th>
+                                                <th>Spacing</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for layout in active_layouts %}
+                                            <tr>
+                                                <td>{{ layout.name }}</td>
+                                                <td>{{ layout.rows }} × {{ layout.columns }}</td>
+                                                <td>{{ layout.total_seats }}</td>
+                                                <td>{{ layout.get_spacing_type_display }}</td>
+                                                <td>
+                                                    <span class="badge bg-success">Active</span>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <form method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.name.id_for_label }}" class="form-label fw-bold">
+                                        <i class="fas fa-tag me-2"></i>Layout Name
+                                    </label>
+                                    <input type="text" name="name" id="{{ form.name.id_for_label }}" class="form-control" 
+                                           placeholder="e.g., Standard Exam Layout, Social Distancing Layout" 
+                                           value="{{ form.name.value|default:"" }}" required>
+                                    {% if form.name.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.name.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.description.id_for_label }}" class="form-label fw-bold">
+                                        <i class="fas fa-comment me-2"></i>Description (Optional)
+                                    </label>
+                                    <textarea name="description" id="{{ form.description.id_for_label }}" class="form-control" rows="3" 
+                                              placeholder="Describe this layout arrangement...">{{ form.description.value|default:"" }}</textarea>
+                                    {% if form.description.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.description.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="{{ form.rows.id_for_label }}" class="form-label fw-bold">
+                                            <i class="fas fa-arrows-alt-v me-2"></i>Number of Rows
+                                        </label>
+                                        <input type="number" name="rows" id="{{ form.rows.id_for_label }}" class="form-control" 
+                                               min="1" max="50" value="{{ form.rows.value|default:"" }}" required>
+                                        {% if form.rows.errors %}
+                                        <div class="text-danger mt-1">
+                                            {% for error in form.rows.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                        <div class="form-text">How many rows of seating</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="{{ form.columns.id_for_label }}" class="form-label fw-bold">
+                                            <i class="fas fa-arrows-alt-h me-2"></i>Seats per Row
+                                        </label>
+                                        <input type="number" name="columns" id="{{ form.columns.id_for_label }}" class="form-control" 
+                                               min="1" max="50" value="{{ form.columns.value|default:"" }}" required>
+                                        {% if form.columns.errors %}
+                                        <div class="text-danger mt-1">
+                                            {% for error in form.columns.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                        <div class="form-text">How many seats in each row</div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label for="{{ form.spacing_type.id_for_label }}" class="form-label fw-bold">
+                                        <i class="fas fa-ruler me-2"></i>Spacing Type
+                                    </label>
+                                    <select name="spacing_type" id="{{ form.spacing_type.id_for_label }}" class="form-select" required>
+                                        <option value="">Select spacing type...</option>
+                                        {% for choice in form.spacing_type.field.choices %}
+                                        <option value="{{ choice.0 }}" {% if form.spacing_type.value == choice.0 %}selected{% endif %}>
+                                            {{ choice.1 }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    {% if form.spacing_type.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.spacing_type.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                    <div class="form-text">
+                                        Choose the spacing arrangement for this layout
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label for="{{ form.layout_image.id_for_label }}" class="form-label fw-bold">
+                                        <i class="fas fa-image me-2"></i>Layout Image (Optional)
+                                    </label>
+                                    <input type="file" name="layout_image" id="{{ form.layout_image.id_for_label }}" class="form-control" accept="image/*">
+                                    {% if form.layout_image.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.layout_image.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                    <div class="form-text">
+                                        Upload an image showing the seating arrangement (JPG, PNG, GIF)
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'venues:venue_detail' venue.id %}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>Back to Venue
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Create Layout
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card shadow">
+                        <div class="card-header bg-info text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-info-circle me-2"></i>Layout Guidelines
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <h6>Seating Capacity:</h6>
+                                <ul class="small">
+                                    <li>Total capacity: {{ venue.capacity }}</li>
+                                    <li>Exam capacity: {{ venue.exam_capacity }}</li>
+                                    <li>Recommended layout: ≤ {{ venue.exam_capacity }} seats</li>
+                                    <li>Consider aisle space and accessibility</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6>Spacing Types:</h6>
+                                <ul class="small">
+                                    <li><strong>Standard:</strong> Regular classroom spacing</li>
+                                    <li><strong>Wide:</strong> Extra space between seats</li>
+                                    <li><strong>Social Distancing:</strong> Maximum spacing for safety</li>
+                                </ul>
+                            </div>
+
+                            <div class="mb-3">
+                                <h6>Layout Tips:</h6>
+                                <ul class="small">
+                                    <li>Ensure clear pathways for movement</li>
+                                    <li>Consider wheelchair accessibility</li>
+                                    <li>Allow space for invigilators</li>
+                                    <li>Maintain visibility for all students</li>
+                                    <li>Follow exam board guidelines</li>
+                                </ul>
+                            </div>
+
+                            <div class="alert alert-info small">
+                                <i class="fas fa-lightbulb me-2"></i>
+                                <strong>Tip:</strong> Use a layout image to help visualize the seating arrangement for better planning.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow mt-3">
+                        <div class="card-header bg-success text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-calculator me-2"></i>Capacity Calculator
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label small">Rows × Columns = Total Seats</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" id="calc-rows" class="form-control" placeholder="Rows" min="1" max="50">
+                                    <span class="input-group-text">×</span>
+                                    <input type="number" id="calc-columns" class="form-control" placeholder="Columns" min="1" max="50">
+                                    <span class="input-group-text">=</span>
+                                    <input type="number" id="calc-total" class="form-control" readonly placeholder="Total">
+                                </div>
+                            </div>
+                            <div class="small text-muted">
+                                <div>Venue Capacity: <strong>{{ venue.capacity }}</strong></div>
+                                <div>Exam Capacity: <strong>{{ venue.exam_capacity }}</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const rowsInput = document.getElementById('calc-rows');
+    const columnsInput = document.getElementById('calc-columns');
+    const totalInput = document.getElementById('calc-total');
+    
+    function calculateTotal() {
+        const rows = parseInt(rowsInput.value) || 0;
+        const columns = parseInt(columnsInput.value) || 0;
+        totalInput.value = rows * columns;
+    }
+    
+    rowsInput.addEventListener('input', calculateTotal);
+    columnsInput.addEventListener('input', calculateTotal);
+});
+</script>
+{% endblock %}

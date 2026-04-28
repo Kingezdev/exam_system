@@ -1,0 +1,206 @@
+{% extends 'accounts/dashboard.html' %}
+
+{% block title %}Exam Officer Dashboard - PLASU Exam System{% endblock %}
+
+{% block content %}
+<!-- Exam Officer specific content -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-clipboard-list me-2"></i>
+                    Examination Management
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="card bg-light border">
+                            <div class="card-body text-center">
+                                <i class="fas fa-calendar-plus fa-3x text-primary mb-3"></i>
+                                <h6>Exam Sessions</h6>
+                                <p class="mb-3">Manage exam sessions and academic periods</p>
+                                <a href="{% url 'exams:exam_session_list' %}" class="btn btn-primary btn-sm">
+                                    Manage Sessions
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <div class="card bg-light border">
+                            <div class="card-body text-center">
+                                <i class="fas fa-clock fa-3x text-success mb-3"></i>
+                                <h6>Exam Scheduling</h6>
+                                <p class="mb-3">Create and manage exam timetables</p>
+                                <a href="{% url 'exams:exam_create' %}" class="btn btn-success btn-sm">
+                                    Schedule Exam
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <div class="card bg-light border">
+                            <div class="card-body text-center">
+                                <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                                <h6>Conflict Resolution</h6>
+                                <p class="mb-3">Detect and resolve scheduling conflicts</p>
+                                <a href="{% url 'exams:conflict_list' %}" class="btn btn-warning btn-sm">
+                                    View Conflicts
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Examination Statistics
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h4 class="text-primary">{{ total_exams|default:"0" }}</h4>
+                                <p class="mb-0">Total Exams</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h4 class="text-success">{{ published_exams|default:"0" }}</h4>
+                                <p class="mb-0">Published Exams</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h4 class="text-warning">{{ conflicts|default:"0" }}</h4>
+                                <p class="mb-0">Active Conflicts</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h4 class="text-info">{{ this_week_exams|default:"0" }}</h4>
+                                <p class="mb-0">This Week's Exams</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activities -->
+<div class="row mt-4">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-history me-2"></i>
+                    Recent Examination Activities
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Activity</th>
+                                <th>Course</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2024-04-27 14:30</td>
+                                <td>Exam Created</td>
+                                <td>CSC201 - Data Structures</td>
+                                <td><span class="badge bg-success">Completed</span></td>
+                            </tr>
+                            <tr>
+                                <td>2024-04-27 13:45</td>
+                                <td>Question Paper Uploaded</td>
+                                <td>MTH101 - Calculus I</td>
+                                <td><span class="badge bg-success">Completed</span></td>
+                            </tr>
+                            <tr>
+                                <td>2024-04-27 12:20</td>
+                                <td>Conflict Detected</td>
+                                <td>PHY101 - Physics I</td>
+                                <td><span class="badge bg-warning">Needs Resolution</span></td>
+                            </tr>
+                            <tr>
+                                <td>2024-04-27 11:15</td>
+                                <td>Exam Published</td>
+                                <td>ENG101 - English Language</td>
+                                <td><span class="badge bg-success">Published</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-tasks me-2"></i>
+                    Pending Tasks
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">Resolve Exam Conflicts</h6>
+                            <small>3 conflicts</small>
+                        </div>
+                        <p class="mb-1">Time conflicts detected in Computer Science exams</p>
+                        <small class="text-muted">2 hours ago</small>
+                    </a>
+                    
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">Upload Question Papers</h6>
+                            <small>5 pending</small>
+                        </div>
+                        <p class="mb-1">Mathematics department question papers pending</p>
+                        <small class="text-muted">5 hours ago</small>
+                    </a>
+                    
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">Review Exam Allocations</h6>
+                            <small>2 pending</small>
+                        </div>
+                        <p class="mb-1">Venue allocations need confirmation</p>
+                        <small class="text-muted">1 day ago</small>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

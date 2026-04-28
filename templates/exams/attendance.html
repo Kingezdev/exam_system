@@ -1,0 +1,353 @@
+{% extends 'base.html' %}
+
+{% block title %}Exam Attendance - PLASU Exam System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-user-check me-2"></i>
+                Exam Attendance
+            </h2>
+            <div>
+                <a href="{% url 'exams:exam_detail' exam.id %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Back to Exam
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Exam Information -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Exam Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <strong>Course:</strong><br>
+                        {{ exam.course.code }} - {{ exam.course.name }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Date & Time:</strong><br>
+                        {{ exam.date|date:"M d, Y" }}<br>
+                        {{ exam.start_time }} - {{ exam.end_time }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Venue:</strong><br>
+                        {{ exam.allocation.venue.name|default:"Not Assigned" }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Total Students:</strong><br>
+                        {{ enrollments.count }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Attendance Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Present
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ present_count|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                            Absent
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ absent_count|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-times-circle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Not Marked
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ not_marked_count|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-question-circle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Attendance Rate
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ attendance_rate|default:"0" }}%
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-percentage fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Attendance Form -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-users me-2"></i>
+                    Mark Attendance
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Quick Actions -->
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-success btn-sm" onclick="selectAll(true)">
+                            <i class="fas fa-check-square me-1"></i>
+                            Mark All Present
+                        </button>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="selectAll(false)">
+                            <i class="fas fa-times-square me-1"></i>
+                            Mark All Absent
+                        </button>
+                        <button type="button" class="btn btn-warning btn-sm" onclick="clearAll()">
+                            <i class="fas fa-square me-1"></i>
+                            Clear All
+                        </button>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <input type="checkbox" id="selectAll" onchange="toggleAll()">
+                                    </th>
+                                    <th>Student ID</th>
+                                    <th>Name</th>
+                                    <th>Department</th>
+                                    <th>Seat Number</th>
+                                    <th>Arrival Time</th>
+                                    <th>Status</th>
+                                    <th>Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in enrollment_data %}
+                            {% with enrollment=item.enrollment %}
+                                <tr>
+                                    <td>
+                                        <input type="checkbox" name="student_{{ enrollment.student.id }}" 
+                                               {% if item.is_present %}checked{% endif %}>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ enrollment.student.student_id|default:"N/A" }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px; font-size: 12px;">
+                                                {{ enrollment.student.first_name.0|default:enrollment.student.username.0|upper }}{{ enrollment.student.last_name.0|default:"" }}
+                                            </div>
+                                            <div>
+                                                <strong>{{ enrollment.student.get_full_name|default:enrollment.student.username }}</strong>
+                                                <br>
+                                                <small class="text-muted">{{ enrollment.student.email }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ enrollment.student.department.name|default:"N/A" }}</span>
+                                    </td>
+                                    <td>
+                                        {% if item.has_seat %}
+                                            {{ item.seat_number }}
+                                        {% else %}
+                                            <span class="text-muted">Not Assigned</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if item.arrival_time %}
+                                            {{ item.arrival_time }}
+                                        {% else %}
+                                            <span class="text-muted">--:--</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if item.attendance %}
+                                            {% if item.is_present %}
+                                                <span class="badge bg-success">Present</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Absent</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge bg-warning">Not Marked</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <input type="text" name="remarks_{{ enrollment.student.id }}" 
+                                               class="form-control form-control-sm" 
+                                               value="{{ item.remarks }}" 
+                                               placeholder="Add remarks...">
+                                    </td>
+                                </tr>
+                                {% endwith %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+                        <a href="{% url 'exams:exam_detail' exam.id %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>
+                            Save Attendance
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Attendance History -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-history me-2"></i>
+                    Recent Attendance Updates
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    {% for attendance in recent_attendances %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">
+                                {{ attendance.student.get_full_name|default:attendance.student.username }}
+                                {% if attendance.is_present %}
+                                    <span class="badge bg-success">Present</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Absent</span>
+                                {% endif %}
+                            </h6>
+                            <small>{{ attendance.marked_at|timesince }} ago by {{ attendance.marked_by.get_full_name|default:attendance.marked_by.username }}</small>
+                        </div>
+                        {% if attendance.remarks %}
+                        <p class="mb-1"><small class="text-muted">Remarks: {{ attendance.remarks }}</small></p>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-history fa-2x text-muted mb-2"></i>
+                        <p class="text-muted">No attendance updates yet.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function selectAll(present) {
+    const checkboxes = document.querySelectorAll('input[type="checkbox"][name^="student_"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = present;
+    });
+}
+
+function clearAll() {
+    const checkboxes = document.querySelectorAll('input[type="checkbox"][name^="student_"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+    });
+}
+
+function toggleAll() {
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('input[type="checkbox"][name^="student_"]');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAllCheckbox.checked;
+    });
+}
+
+// Auto-save functionality
+let saveTimeout;
+document.querySelectorAll('input[type="checkbox"], input[type="text"]').forEach(input => {
+    input.addEventListener('change', function() {
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => {
+            // Show saving indicator
+            const indicator = document.createElement('div');
+            indicator.className = 'alert alert-info position-fixed top-0 end-0 m-3';
+            indicator.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Auto-saving...';
+            document.body.appendChild(indicator);
+            
+            setTimeout(() => {
+                indicator.remove();
+            }, 1000);
+        }, 2000);
+    });
+});
+</script>
+{% endblock %}

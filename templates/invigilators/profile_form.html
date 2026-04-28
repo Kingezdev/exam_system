@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">{{ title }}</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'invigilators:invigilator_list' %}">Invigilators</a></li>
+                        <li class="breadcrumb-item active">{{ title }}</li>
+                    </ol>
+                </nav>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card shadow">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-user-tie me-2"></i>
+                                {{ title }}
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if profile %}
+                                <div class="alert alert-info mb-4">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    You already have an invigilator profile. You can update it below.
+                                </div>
+                            {% else %}
+                                <div class="alert alert-warning mb-4">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    Please complete your invigilator profile to access all features.
+                                </div>
+                            {% endif %}
+
+                            <form method="post">
+                                {% csrf_token %}
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        {{ form.staff_id|as_crispy_field }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        {{ form.department|as_crispy_field }}
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        {{ form.phone_number|as_crispy_field }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        {{ form.email_address|as_crispy_field }}
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        {{ form.qualification|as_crispy_field }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        {{ form.experience_years|as_crispy_field }}
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        {{ form.max_exams_per_day|as_crispy_field }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        {{ form.is_available|as_crispy_field }}
+                                    </div>
+                                </div>
+
+                                {{ form.preferred_venues|as_crispy_field }}
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        {{ form.emergency_contact|as_crispy_field }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        {{ form.emergency_phone|as_crispy_field }}
+                                    </div>
+                                </div>
+
+                                {{ form.notes|as_crispy_field }}
+
+                                <div class="d-flex justify-content-between mt-4">
+                                    <a href="{% url 'invigilators:invigilator_list' %}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>Back to Invigilators
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>
+                                        {% if profile %}Update Profile{% else %}Create Profile{% endif %}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <!-- Profile Guidelines -->
+                    <div class="card shadow mb-4">
+                        <div class="card-header bg-info text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Profile Guidelines
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <h6>Required Information</h6>
+                                <ul class="small">
+                                    <li>Full name and contact details</li>
+                                    <li>Employee ID for verification</li>
+                                    <li>Department and qualification</li>
+                                    <li>Years of experience</li>
+                                    <li>Availability status</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6>Optional Information</h6>
+                                <ul class="small">
+                                    <li>Specialization areas</li>
+                                    <li>Preferred venues</li>
+                                    <li>Maximum assignments per day</li>
+                                    <li>Additional notes</li>
+                                </ul>
+                            </div>
+
+                            <div class="alert alert-warning small">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Important:</strong> Your profile information will be used for exam assignments and notifications.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Current Status -->
+                    <div class="card shadow mb-4">
+                        <div class="card-header bg-success text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-chart-line me-2"></i>
+                                Current Status
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="small">Profile Status</span>
+                                    <span class="small text-{{ profile|yesno:'success,warning' }}">
+                                        {% if profile %}Complete{% else %}Incomplete{% endif %}
+                                    </span>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-{% if profile %}success{% else %}warning{% endif %}" 
+                                         style="width: {% if profile %}100{% else %}0{% endif %}%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="small">Assignment Ready</span>
+                                    <span class="small text-{% if profile and profile.is_available %}success{% else %}secondary{% endif %}">
+                                        {% if profile and profile.is_available %}Yes{% else %}No{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {% if profile %}
+                            <div class="text-center mt-3">
+                                <small class="text-muted">Last updated: {{ profile.updated_at|date:"M d, Y H:i" }}</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="card shadow">
+                        <div class="card-header bg-secondary text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-bolt me-2"></i>
+                                Quick Actions
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'invigilators:manage_availability' %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-calendar me-2"></i>Manage Availability
+                                </a>
+                                <a href="{% url 'invigilators:my_assignments' %}" class="btn btn-outline-success btn-sm">
+                                    <i class="fas fa-list me-2"></i>My Assignments
+                                </a>
+                                <a href="{% url 'invigilators:notifications' %}" class="btn btn-outline-info btn-sm">
+                                    <i class="fas fa-bell me-2"></i>Notifications
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-format phone number
+    const phoneField = document.getElementById('id_phone_number');
+    if (phoneField) {
+        phoneField.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 0) {
+                if (value.length <= 3) {
+                    value = value;
+                } else if (value.length <= 6) {
+                    value = value.slice(0, 3) + '-' + value.slice(3);
+                } else {
+                    value = value.slice(0, 3) + '-' + value.slice(3, 6) + '-' + value.slice(6, 10);
+                }
+            }
+            e.target.value = value;
+        });
+    }
+
+    // Validate experience years
+    const experienceField = document.getElementById('id_experience_years');
+    if (experienceField) {
+        experienceField.addEventListener('input', function(e) {
+            let value = parseInt(e.target.value);
+            if (isNaN(value) || value < 0) {
+                e.target.value = 0;
+            } else if (value > 50) {
+                e.target.value = 50;
+            }
+        });
+    }
+
+    // Validate max exams per day
+    const maxExamsField = document.getElementById('id_max_exams_per_day');
+    if (maxExamsField) {
+        maxExamsField.addEventListener('input', function(e) {
+            let value = parseInt(e.target.value);
+            if (isNaN(value) || value < 1) {
+                e.target.value = 1;
+            } else if (value > 10) {
+                e.target.value = 10;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,336 @@
+{% extends 'accounts/dashboard.html' %}
+
+{% block title %}Invigilator Dashboard - PLASU Exam System{% endblock %}
+
+{% block content %}
+<!-- Invigilator specific content -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-tie me-2"></i>
+                    My Invigilation Dashboard
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="card bg-light border">
+                            <div class="card-body text-center">
+                                <i class="fas fa-calendar-check fa-3x text-primary mb-3"></i>
+                                <h6>Today's Schedule</h6>
+                                <p class="mb-3">View your exam assignments for today</p>
+                                <div class="badge bg-primary fs-6">{{ today_assignments|default:"0" }} Assignments</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <div class="card bg-light border">
+                            <div class="card-body text-center">
+                                <i class="fas fa-clock fa-3x text-success mb-3"></i>
+                                <h6>Pending Assignments</h6>
+                                <p class="mb-3">Assignments awaiting your acceptance</p>
+                                <div class="badge bg-success fs-6">{{ pending_assignments|default:"0" }} Pending</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <div class="card bg-light border">
+                            <div class="card-body text-center">
+                                <i class="fas fa-bell fa-3x text-warning mb-3"></i>
+                                <h6>Notifications</h6>
+                                <p class="mb-3">Unread notifications and updates</p>
+                                <div class="badge bg-warning fs-6">{{ unread_notifications|default:"0" }} New</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Today's Assignments -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar-day me-2"></i>
+                    Today's Invigilation Assignments
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if today_assignments %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Course</th>
+                                <th>Venue</th>
+                                <th>Assignment Type</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for assignment in today_assignments %}
+                            <tr>
+                                <td>
+                                    {{ assignment.exam_allocation.exam.start_time }} - 
+                                    {{ assignment.exam_allocation.exam.end_time }}
+                                </td>
+                                <td>
+                                    {{ assignment.exam_allocation.exam.course.code }}<br>
+                                    <small class="text-muted">{{ assignment.exam_allocation.exam.course.name }}</small>
+                                </td>
+                                <td>{{ assignment.exam_allocation.venue.name }}</td>
+                                <td>
+                                    <span class="badge bg-{{ assignment.is_primary|yesno:'primary,secondary' }}">
+                                        {{ assignment.get_assignment_type_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if assignment.has_accepted %}
+                                        <span class="badge bg-success">Accepted</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if not assignment.has_accepted %}
+                                    <a href="{% url 'invigilators:accept_assignment' assignment.id %}" 
+                                       class="btn btn-sm btn-success">
+                                        <i class="fas fa-check me-1"></i>
+                                        Accept
+                                    </a>
+                                    {% else %}
+                                    <a href="#" class="btn btn-sm btn-info">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Details
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                    <h5>No assignments scheduled for today</h5>
+                    <p class="text-muted">You have no invigilation assignments for today. Check your availability settings or upcoming assignments.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upcoming Assignments -->
+<div class="row mt-4">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar-alt me-2"></i>
+                    Upcoming Assignments
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Course</th>
+                                <th>Venue</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for assignment in upcoming_assignments %}
+                            <tr>
+                                <td>{{ assignment.exam_allocation.exam.date|date:"M d, Y" }}</td>
+                                <td>
+                                    {{ assignment.exam_allocation.exam.start_time }} - 
+                                    {{ assignment.exam_allocation.exam.end_time }}
+                                </td>
+                                <td>
+                                    {{ assignment.exam_allocation.exam.course.code }}<br>
+                                    <small class="text-muted">{{ assignment.exam_allocation.exam.course.name }}</small>
+                                </td>
+                                <td>{{ assignment.exam_allocation.venue.name }}</td>
+                                <td>
+                                    <span class="badge bg-{{ assignment.is_primary|yesno:'primary,secondary' }}">
+                                        {{ assignment.get_assignment_type_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if assignment.has_accepted %}
+                                        <span class="badge bg-success">Accepted</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center">No upcoming assignments</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fas fa-tasks me-2"></i>
+                    Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'invigilators:my_assignments' %}" class="btn btn-primary">
+                        <i class="fas fa-list me-2"></i>
+                        All Assignments
+                    </a>
+                    <a href="{% url 'invigilators:manage_availability' %}" class="btn btn-success">
+                        <i class="fas fa-calendar-plus me-2"></i>
+                        Update Availability
+                    </a>
+                    <a href="{% url 'invigilators:notifications' %}" class="btn btn-info">
+                        <i class="fas fa-bell me-2"></i>
+                        Notifications
+                        {% if unread_notifications %}
+                        <span class="badge bg-danger">{{ unread_notifications }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{% url 'invigilators:profile_update' %}" class="btn btn-warning">
+                        <i class="fas fa-user me-2"></i>
+                        Update Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Performance Summary -->
+        <div class="card shadow mt-3">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-star me-2"></i>
+                    Performance Summary
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <h3 class="text-primary">{{ average_rating|default:"N/A" }}/5</h3>
+                    <p class="text-muted">Average Rating</p>
+                </div>
+                
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h5 class="text-success">{{ total_assignments|default:"0" }}</h5>
+                        <small class="text-muted">Total Assignments</small>
+                    </div>
+                    <div class="col-6">
+                        <h5 class="text-info">{{ completed_assignments|default:"0" }}</h5>
+                        <small class="text-muted">Completed</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Notifications -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-bell me-2"></i>
+                    Recent Notifications
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_notifications %}
+                <div class="list-group">
+                    {% for notification in recent_notifications %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">
+                                <i class="fas fa-{{ notification.icon|default:'bell' }} text-{{ notification.color|default:'primary' }} me-2"></i>
+                                {{ notification.title }}
+                            </h6>
+                            <small>{{ notification.created_at|timesince }}</small>
+                        </div>
+                        <p class="mb-1">{{ notification.message }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <i class="fas fa-bell-slash fa-2x text-muted mb-2"></i>
+                    <p class="text-muted">No new notifications</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Important Reminders -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Important Reminders
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="alert alert-warning">
+                            <h6><i class="fas fa-clock me-2"></i>Punctuality</h6>
+                            <p class="mb-0">Please arrive at least 30 minutes before the scheduled exam time.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-id-card me-2"></i>Identification</h6>
+                            <p class="mb-0">Always carry your official identification badge during invigilation.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="alert alert-success">
+                            <h6><i class="fas fa-phone me-2"></i>Emergency Contact</h6>
+                            <p class="mb-0">Report any emergencies to the exam officer immediately.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="alert alert-danger">
+                            <h6><i class="fas fa-shield-alt me-2"></i>Professional Conduct</h6>
+                            <p class="mb-0">Maintain professional conduct at all times during examinations.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,538 @@
+{% extends 'base.html' %}
+
+{% block title %}Allocation Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">Allocation Dashboard</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+                        <li class="breadcrumb-item active">Allocation Dashboard</li>
+                    </ol>
+                </nav>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card shadow border-left-primary">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                        Total Allocations
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_allocations }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-calendar-check fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card shadow border-left-warning">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                        Pending Allocations
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pending_allocations }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-clock fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card shadow border-left-danger">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                        Active Conflicts
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ conflicts }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card shadow border-left-success">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                        Completion Rate
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                        {% if total_allocations > 0 %}
+                                            {% widthratio total_allocations pending_allocations 100 %}%
+                                        {% else %}
+                                            0%
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Allocations -->
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card shadow">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-history me-2"></i>
+                                Recent Allocations
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if recent_allocations %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Exam</th>
+                                                <th>Course</th>
+                                                <th>Venue</th>
+                                                <th>Date</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for allocation in recent_allocations %}
+                                            <tr>
+                                                <td>
+                                                    <a href="#" class="text-decoration-none">
+                                                        {{ allocation.exam.title }}
+                                                    </a>
+                                                </td>
+                                                <td>{{ allocation.exam.course.code }}</td>
+                                                <td>{{ allocation.venue.name }}</td>
+                                                <td>{{ allocation.allocation_date|date:"M d, Y" }}</td>
+                                                <td>
+                                                    {% if allocation.is_confirmed %}
+                                                        <span class="badge bg-success">Confirmed</span>
+                                                    {% else %}
+                                                        <span class="badge bg-warning">Pending</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="#" class="btn btn-outline-primary btn-sm">
+                                                            <i class="fas fa-eye"></i>
+                                                        </a>
+                                                        <a href="#" class="btn btn-outline-warning btn-sm">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                                    <h5 class="text-muted">No Recent Allocations</h5>
+                                    <p class="text-muted">Start by allocating venues for exams.</p>
+                                    <a href="#" class="btn btn-primary">
+                                        <i class="fas fa-plus me-2"></i>Create Allocation
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <!-- Quick Actions -->
+                    <div class="card shadow mb-4">
+                        <div class="card-header bg-info text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-bolt me-2"></i>
+                                Quick Actions
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'exams:exam_list' %}" class="btn btn-primary">
+                                    <i class="fas fa-plus me-2"></i>New Allocation
+                                </a>
+                                <a href="{% url 'allocation:conflicts' %}" class="btn btn-danger">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>View Conflicts
+                                </a>
+                                <a href="#pending-allocations" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#confirmPendingModal">
+                                    <i class="fas fa-check-circle me-2"></i>Confirm Pending
+                                </a>
+                                <a href="#" class="btn btn-info" onclick="exportAllocationReport()">
+                                    <i class="fas fa-download me-2"></i>Export Report
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- System Status -->
+                    <div class="card shadow mb-4">
+                        <div class="card-header bg-success text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-heartbeat me-2"></i>
+                                System Status
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="small">Allocation Health</span>
+                                    <span class="small text-success">Good</span>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-success" style="width: 85%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="small">Venue Utilization</span>
+                                    <span class="small text-info">Normal</span>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-info" style="width: 65%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="small">Conflict Resolution</span>
+                                    <span class="small text-warning">Attention</span>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-warning" style="width: 40%"></div>
+                                </div>
+                            </div>
+
+                            <div class="text-center mt-3">
+                                <small class="text-muted">Last updated: {% now "Y-m-d H:i" %}</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upcoming Deadlines -->
+                    <div class="card shadow">
+                        <div class="card-header bg-warning text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-calendar-alt me-2"></i>
+                                Upcoming Deadlines
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group list-group-flush">
+                                <div class="list-group-item px-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">Finalize Semester Allocations</h6>
+                                            <small class="text-muted">Complete all pending allocations</small>
+                                        </div>
+                                        <span class="badge bg-warning">2 days</span>
+                                    </div>
+                                </div>
+                                <div class="list-group-item px-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">Resolve Venue Conflicts</h6>
+                                            <small class="text-muted">Address scheduling conflicts</small>
+                                        </div>
+                                        <span class="badge bg-danger">1 day</span>
+                                    </div>
+                                </div>
+                                <div class="list-group-item px-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">Send Allocation Notifications</h6>
+                                            <small class="text-muted">Notify invigilators and students</small>
+                                        </div>
+                                        <span class="badge bg-info">5 days</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.border-left-primary {
+    border-left: 4px solid #4e73df !important;
+}
+.border-left-success {
+    border-left: 4px solid #1cc88a !important;
+}
+.border-left-info {
+    border-left: 4px solid #36b9cc !important;
+}
+.border-left-warning {
+    border-left: 4px solid #f6c23e !important;
+}
+.border-left-danger {
+    border-left: 4px solid #e74a3b !important;
+}
+.text-xs {
+    font-size: 0.7rem;
+}
+.font-weight-bold {
+    font-weight: 700 !important;
+}
+.text-gray-800 {
+    color: #5a5c69 !important;
+}
+.text-gray-300 {
+    color: #dddfeb !important;
+}
+</style>
+
+<!-- Confirm Pending Allocations Modal -->
+<div class="modal fade" id="confirmPendingModal" tabindex="-1" aria-labelledby="confirmPendingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="confirmPendingModalLabel">
+                    <i class="fas fa-check-circle me-2"></i>Confirm Pending Allocations
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Review and confirm pending exam allocations below. Once confirmed, these allocations will be finalized and visible to students and invigilators.
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover" id="pendingAllocationsTable">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <input type="checkbox" id="selectAllPending" class="form-check-input">
+                                </th>
+                                <th>Exam</th>
+                                <th>Course</th>
+                                <th>Venue</th>
+                                <th>Date</th>
+                                <th>Students</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Pending allocations will be loaded here via JavaScript -->
+                            <tr>
+                                <td colspan="7" class="text-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="mt-2 text-muted">Loading pending allocations...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-success" onclick="confirmSelectedAllocations()">
+                    <i class="fas fa-check me-2"></i>Confirm Selected
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Load pending allocations when modal is shown
+document.getElementById('confirmPendingModal').addEventListener('shown.bs.modal', function () {
+    loadPendingAllocations();
+});
+
+// Select all functionality
+document.getElementById('selectAllPending').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('input[name="pending_allocation"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = this.checked;
+    });
+});
+
+// Load pending allocations
+function loadPendingAllocations() {
+    fetch('/allocation/api/pending-allocations/')
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.querySelector('#pendingAllocationsTable tbody');
+            tbody.innerHTML = '';
+            
+            if (data.allocations.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">
+                            <i class="fas fa-check-circle fa-2x mb-2"></i>
+                            <p>No pending allocations to confirm.</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            data.allocations.forEach(allocation => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <input type="checkbox" name="pending_allocation" value="${allocation.id}" class="form-check-input">
+                    </td>
+                    <td>
+                        <a href="/exams/${allocation.exam_id}/" class="text-decoration-none">
+                            ${allocation.exam_title}
+                        </a>
+                    </td>
+                    <td>${allocation.course_code}</td>
+                    <td>${allocation.venue_name}</td>
+                    <td>${new Date(allocation.allocation_date).toLocaleDateString()}</td>
+                    <td>
+                        <span class="badge bg-info">${allocation.student_count} students</span>
+                    </td>
+                    <td>
+                        <span class="badge bg-warning">Pending</span>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        })
+        .catch(error => {
+            console.error('Error loading pending allocations:', error);
+            const tbody = document.querySelector('#pendingAllocationsTable tbody');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center text-danger">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                        <p>Error loading pending allocations. Please try again.</p>
+                    </td>
+                </tr>
+            `;
+        });
+}
+
+// Confirm selected allocations
+function confirmSelectedAllocations() {
+    const selectedIds = Array.from(document.querySelectorAll('input[name="pending_allocation"]:checked'))
+        .map(checkbox => checkbox.value);
+    
+    if (selectedIds.length === 0) {
+        alert('Please select at least one allocation to confirm.');
+        return;
+    }
+    
+    if (confirm(`Are you sure you want to confirm ${selectedIds.length} allocation(s)?`)) {
+        fetch('/allocation/api/confirm-allocations/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ allocation_ids: selectedIds })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`Successfully confirmed ${data.confirmed_count} allocation(s).`);
+                location.reload(); // Reload to update statistics
+            } else {
+                alert('Error confirming allocations: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error confirming allocations:', error);
+            alert('Error confirming allocations. Please try again.');
+        });
+    }
+}
+
+// Export allocation report
+function exportAllocationReport() {
+    const format = prompt('Choose export format:\n1. Excel (xlsx)\n2. PDF\n3. CSV\n\nEnter 1, 2, or 3:', '1');
+    
+    if (format === null) return;
+    
+    let url = '/allocation/export-report/';
+    let params = new URLSearchParams();
+    
+    switch(format) {
+        case '1':
+            params.append('format', 'xlsx');
+            break;
+        case '2':
+            params.append('format', 'pdf');
+            break;
+        case '3':
+            params.append('format', 'csv');
+            break;
+        default:
+            alert('Invalid format. Please enter 1, 2, or 3.');
+            return;
+    }
+    
+    // Add date range options
+    const includeDateRange = confirm('Include date range filter?');
+    if (includeDateRange) {
+        const startDate = prompt('Start date (YYYY-MM-DD):', new Date(Date.now() - 30*24*60*60*1000).toISOString().split('T')[0]);
+        const endDate = prompt('End date (YYYY-MM-DD):', new Date().toISOString().split('T')[0]);
+        
+        if (startDate && endDate) {
+            params.append('start_date', startDate);
+            params.append('end_date', endDate);
+        }
+    }
+    
+    window.open(url + '?' + params.toString(), '_blank');
+}
+
+// Helper function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

@@ -1,0 +1,345 @@
+{% extends 'base.html' %}
+
+{% block title %}Generate Report{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">Generate Report</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'reports:report_list' %}">Reports</a></li>
+                        <li class="breadcrumb-item active">Generate Report</li>
+                    </ol>
+                </nav>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card shadow">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-file-alt me-2"></i>
+                                Report Generation Form
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" id="reportForm">
+                                {% csrf_token %}
+                                
+                                <!-- Report Type Selection -->
+                                <div class="mb-4">
+                                    <label for="report_type" class="form-label fw-bold">
+                                        <i class="fas fa-chart-bar me-2"></i>Report Type
+                                    </label>
+                                    <select class="form-select" id="report_type" name="report_type" required onchange="toggleReportFields()">
+                                        <option value="">Select a report type...</option>
+                                        {% for type_key, type_name in report_types %}
+                                        <option value="{{ type_key }}">{{ type_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="form-text">Choose the type of report you want to generate.</div>
+                                </div>
+
+                                <!-- Report Parameters -->
+                                <div id="reportParameters">
+                                    <!-- Dynamic fields will be inserted here based on report type -->
+                                </div>
+
+                                <!-- Submit Button -->
+                                <div class="d-flex justify-content-between mt-4">
+                                    <a href="{% url 'reports:report_list' %}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>Back to Reports
+                                    </a>
+                                    <button type="submit" class="btn btn-primary" id="generateBtn" disabled>
+                                        <i class="fas fa-cog me-2"></i>Generate Report
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <!-- Report Types Information -->
+                    <div class="card shadow mb-4">
+                        <div class="card-header bg-info text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Available Report Types
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group list-group-flush">
+                                {% for type_key, type_name in report_types %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">{{ type_name }}</h6>
+                                        <small class="text-muted" id="desc-{{ type_key }}">
+                                            {% if type_key == 'exam_timetable' %}
+                                                Complete exam schedule for selected session
+                                            {% elif type_key == 'seating_plan' %}
+                                                Student seating arrangement for specific exam
+                                            {% elif type_key == 'invigilator_schedule' %}
+                                                Invigilator assignments and schedules
+                                            {% elif type_key == 'attendance_report' %}
+                                                Student attendance records and statistics
+                                            {% elif type_key == 'venue_utilization' %}
+                                                Venue usage and capacity analysis
+                                            {% elif type_key == 'exam_statistics' %}
+                                                Comprehensive exam performance statistics
+                                            {% else %}
+                                                Custom report based on selected parameters
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                    <span class="badge bg-primary rounded-pill">{{ forloop.counter }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Generation Guidelines -->
+                    <div class="card shadow mb-4">
+                        <div class="card-header bg-warning text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Generation Guidelines
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <ul class="small">
+                                <li>Reports are generated in PDF format</li>
+                                <li>Generation may take a few minutes for large datasets</li>
+                                <li>You'll be redirected to the report when complete</li>
+                                <li>All generated reports are saved for future access</li>
+                                <li>Failed generations will show error details</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Recent Reports -->
+                    <div class="card shadow">
+                        <div class="card-header bg-secondary text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-history me-2"></i>
+                                Recent Reports
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group list-group-flush">
+                                <!-- This would typically show recent reports from the database -->
+                                <div class="list-group-item text-center text-muted">
+                                    <small>No recent reports available</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden field templates -->
+<div id="fieldTemplates" style="display: none;">
+    <!-- Exam Timetable Fields -->
+    <div id="exam_timetable_fields">
+        <div class="mb-3">
+            <label for="exam_session" class="form-label fw-bold">
+                <i class="fas fa-calendar-alt me-2"></i>Exam Session
+            </label>
+            <select class="form-select" id="exam_session" name="exam_session">
+                <option value="">Select exam session...</option>
+                {% for session in exam_sessions %}
+                <option value="{{ session.id }}">{{ session.name }} ({{ session.start_date }} - {{ session.end_date }})</option>
+                {% endfor %}
+            </select>
+            <div class="form-text">Select the exam session for the timetable.</div>
+        </div>
+    </div>
+
+    <!-- Seating Plan Fields -->
+    <div id="seating_plan_fields">
+        <div class="mb-3">
+            <label for="allocation" class="form-label fw-bold">
+                <i class="fas fa-chair me-2"></i>Exam Allocation
+            </label>
+            <select class="form-select" id="allocation" name="allocation">
+                <option value="">Select exam allocation...</option>
+                {% for allocation in allocations %}
+                <option value="{{ allocation.id }}">
+                    {{ allocation.exam.course.code }} - {{ allocation.exam.course.name }} 
+                    ({{ allocation.exam.date }} at {{ allocation.venue.name }})
+                </option>
+                {% endfor %}
+            </select>
+            <div class="form-text">Select the exam allocation for the seating plan.</div>
+        </div>
+    </div>
+
+    <!-- Invigilator Schedule Fields -->
+    <div id="invigilator_schedule_fields">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="date_from" class="form-label fw-bold">
+                    <i class="fas fa-calendar me-2"></i>From Date
+                </label>
+                <input type="date" class="form-control" id="date_from" name="date_from">
+                <div class="form-text">Start date for the schedule.</div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="date_to" class="form-label fw-bold">
+                    <i class="fas fa-calendar me-2"></i>To Date
+                </label>
+                <input type="date" class="form-control" id="date_to" name="date_to">
+                <div class="form-text">End date for the schedule.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Report Fields -->
+    <div id="attendance_report_fields">
+        <div class="mb-3">
+            <label for="exam_session_attendance" class="form-label fw-bold">
+                <i class="fas fa-user-check me-2"></i>Exam Session
+            </label>
+            <select class="form-select" id="exam_session_attendance" name="exam_session">
+                <option value="">Select exam session...</option>
+                {% for session in exam_sessions %}
+                <option value="{{ session.id }}">{{ session.name }} ({{ session.start_date }} - {{ session.end_date }})</option>
+                {% endfor %}
+            </select>
+            <div class="form-text">Select exam session for attendance report.</div>
+        </div>
+    </div>
+
+    <!-- Venue Utilization Fields -->
+    <div id="venue_utilization_fields">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="venue_util_session" class="form-label fw-bold">
+                    <i class="fas fa-building me-2"></i>Exam Session
+                </label>
+                <select class="form-select" id="venue_util_session" name="exam_session">
+                    <option value="">Select exam session...</option>
+                    {% for session in exam_sessions %}
+                    <option value="{{ session.id }}">{{ session.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="venue_util_venue" class="form-label fw-bold">
+                    <i class="fas fa-map-marker-alt me-2"></i>Venue (Optional)
+                </label>
+                <select class="form-select" id="venue_util_venue" name="venue">
+                    <option value="">All venues</option>
+                    {% for allocation in allocations %}
+                    <option value="{{ allocation.venue.id }}">{{ allocation.venue.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exam Statistics Fields -->
+    <div id="exam_statistics_fields">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="stats_session" class="form-label fw-bold">
+                    <i class="fas fa-chart-line me-2"></i>Exam Session
+                </label>
+                <select class="form-select" id="stats_session" name="exam_session">
+                    <option value="">Select exam session...</option>
+                    {% for session in exam_sessions %}
+                    <option value="{{ session.id }}">{{ session.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="stats_department" class="form-label fw-bold">
+                    <i class="fas fa-graduation-cap me-2"></i>Department (Optional)
+                </label>
+                <select class="form-select" id="stats_department" name="department">
+                    <option value="">All departments</option>
+                    <!-- Department options would be populated here -->
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleReportFields() {
+    const reportType = document.getElementById('report_type').value;
+    const parametersDiv = document.getElementById('reportParameters');
+    const generateBtn = document.getElementById('generateBtn');
+    
+    // Clear existing fields
+    parametersDiv.innerHTML = '';
+    generateBtn.disabled = true;
+    
+    if (reportType) {
+        // Get the appropriate field template
+        const fieldTemplate = document.getElementById(reportType + '_fields');
+        if (fieldTemplate) {
+            parametersDiv.innerHTML = fieldTemplate.innerHTML;
+            generateBtn.disabled = false;
+        }
+    }
+}
+
+// Form validation
+document.getElementById('reportForm').addEventListener('submit', function(e) {
+    const reportType = document.getElementById('report_type').value;
+    
+    if (!reportType) {
+        e.preventDefault();
+        alert('Please select a report type.');
+        return;
+    }
+    
+    // Validate required fields based on report type
+    let isValid = true;
+    let errorMessage = '';
+    
+    if (reportType === 'exam_timetable') {
+        const examSession = document.getElementById('exam_session');
+        if (!examSession.value) {
+            isValid = false;
+            errorMessage = 'Please select an exam session.';
+        }
+    } else if (reportType === 'seating_plan') {
+        const allocation = document.getElementById('allocation');
+        if (!allocation.value) {
+            isValid = false;
+            errorMessage = 'Please select an exam allocation.';
+        }
+    } else if (reportType === 'invigilator_schedule') {
+        const dateFrom = document.getElementById('date_from');
+        const dateTo = document.getElementById('date_to');
+        if (!dateFrom.value || !dateTo.value) {
+            isValid = false;
+            errorMessage = 'Please select both from and to dates.';
+        } else if (new Date(dateFrom.value) > new Date(dateTo.value)) {
+            isValid = false;
+            errorMessage = 'From date must be before to date.';
+        }
+    }
+    
+    if (!isValid) {
+        e.preventDefault();
+        alert(errorMessage);
+    } else {
+        // Show loading state
+        const generateBtn = document.getElementById('generateBtn');
+        generateBtn.disabled = true;
+        generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating...';
+    }
+});
+</script>
+{% endblock %}

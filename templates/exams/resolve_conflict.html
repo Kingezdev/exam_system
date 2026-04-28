@@ -1,0 +1,377 @@
+{% extends 'base.html' %}
+
+{% block title %}Resolve Conflict - PLASU Exam System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-check-circle me-2"></i>
+                Resolve Conflict
+            </h2>
+            <div>
+                <a href="{% url 'exams:conflict_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Back to Conflicts
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Conflict Details -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Conflict Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Conflict Type:</strong></td>
+                                <td>
+                                    <span class="badge bg-{{ conflict.severity|yesno:'danger,warning,info,secondary' }}">
+                                        {{ conflict.get_conflict_type_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Severity:</strong></td>
+                                <td>
+                                    <span class="badge bg-{{ conflict.severity|yesno:'danger,warning,info,secondary' }}">
+                                        {{ conflict.severity|title }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Status:</strong></td>
+                                <td>
+                                    {% if conflict.is_resolved %}
+                                        <span class="badge bg-success">Resolved</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Unresolved</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Detected:</strong></td>
+                                <td>{{ conflict.detected_at|date:"M d, Y H:i" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Exam 1:</strong></td>
+                                <td>
+                                    <strong>{{ conflict.exam1.course.code }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ conflict.exam1.course.name }}</small>
+                                    <br>
+                                    <small class="text-muted">{{ conflict.exam1.date|date:"M d, Y" }} {{ conflict.exam1.start_time }}</small>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Exam 2:</strong></td>
+                                <td>
+                                    <strong>{{ conflict.exam2.course.code }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ conflict.exam2.course.name }}</small>
+                                    <br>
+                                    <small class="text-muted">{{ conflict.exam2.date|date:"M d, Y" }} {{ conflict.exam2.start_time }}</small>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <h6><i class="fas fa-info-circle me-2"></i>Description:</h6>
+                    <div class="alert alert-warning">
+                        {{ conflict.description }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Resolution Form -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-edit me-2"></i>
+                    Resolve Conflict
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label for="resolution_notes" class="form-label">Resolution Notes</label>
+                        <textarea name="resolution_notes" id="resolution_notes" class="form-control" rows="4" required
+                                  placeholder="Describe how you resolved this conflict..."></textarea>
+                        <div class="form-text">
+                            Please provide detailed information about how this conflict was resolved. This will help with future conflict prevention.
+                        </div>
+                    </div>
+                    
+                    <!-- Resolution Suggestions -->
+                    <div class="mb-4">
+                        <h6><i class="fas fa-lightbulb me-2"></i>Common Resolution Options</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card border-light">
+                                    <div class="card-body">
+                                        <h6>Time Overlap Solutions</h6>
+                                        <ul class="small">
+                                            <li>Reschedule one exam to different time</li>
+                                            <li>Split exam into multiple sessions</li>
+                                            <li>Use alternative assessment method</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card border-light">
+                                    <div class="card-body">
+                                        <h6>Resource Solutions</h6>
+                                        <ul class="small">
+                                            <li>Reallocate to different venue</li>
+                                            <li>Assign additional invigilators</li>
+                                            <li>Use backup resources</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Templates -->
+                    <div class="mb-4">
+                        <h6><i class="fas fa-file-alt me-2"></i>Quick Templates</h6>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="setTemplate('rescheduled')">
+                                Rescheduled Exam
+                            </button>
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="setTemplate('venue')">
+                                Changed Venue
+                            </button>
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="setTemplate('invigilator')">
+                                Reassigned Invigilator
+                            </button>
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="setTemplate('manual')">
+                                Manual Resolution
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'exams:conflict_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check me-2"></i>
+                            Mark as Resolved
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Related Information -->
+<div class="row mt-4">
+    <div class="col-lg-6">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Exam 1 Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>Course:</strong></td>
+                        <td>{{ conflict.exam1.course.code }} - {{ conflict.exam1.course.name }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Department:</strong></td>
+                        <td>{{ conflict.exam1.course.department.name }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Date & Time:</strong></td>
+                        <td>{{ conflict.exam1.date|date:"l, F d, Y" }} {{ conflict.exam1.start_time }} - {{ conflict.exam1.end_time }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Venue:</strong></td>
+                        <td>{{ conflict.exam1.allocation.venue.name|default:"Not Allocated" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Enrolled Students:</strong></td>
+                        <td>{{ conflict.exam1.enrolled_students|default:"0" }}</td>
+                    </tr>
+                </table>
+                
+                <div class="mt-3">
+                    <a href="{% url 'exams:exam_detail' conflict.exam1.id %}" class="btn btn-sm btn-info">
+                        <i class="fas fa-eye me-1"></i>
+                        View Exam Details
+                    </a>
+                    <a href="{% url 'exams:exam_detail' conflict.exam1.id %}" class="btn btn-sm btn-warning">
+                        <i class="fas fa-edit me-1"></i>
+                        Edit Exam
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Exam 2 Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>Course:</strong></td>
+                        <td>{{ conflict.exam2.course.code }} - {{ conflict.exam2.course.name }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Department:</strong></td>
+                        <td>{{ conflict.exam2.course.department.name }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Date & Time:</strong></td>
+                        <td>{{ conflict.exam2.date|date:"l, F d, Y" }} {{ conflict.exam2.start_time }} - {{ conflict.exam2.end_time }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Venue:</strong></td>
+                        <td>{{ conflict.exam2.allocation.venue.name|default:"Not Allocated" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Enrolled Students:</strong></td>
+                        <td>{{ conflict.exam2.enrolled_students|default:"0" }}</td>
+                    </tr>
+                </table>
+                
+                <div class="mt-3">
+                    <a href="{% url 'exams:exam_detail' conflict.exam2.id %}" class="btn btn-sm btn-info">
+                        <i class="fas fa-eye me-1"></i>
+                        View Exam Details
+                    </a>
+                    <a href="{% url 'exams:exam_detail' conflict.exam2.id %}" class="btn btn-sm btn-warning">
+                        <i class="fas fa-edit me-1"></i>
+                        Edit Exam
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Similar Conflicts -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Similar Conflicts
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Other conflicts of the same type that might need attention:</p>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Exams</th>
+                                <th>Description</th>
+                                <th>Severity</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Similar conflicts would be listed here -->
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">No similar conflicts found</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function setTemplate(type) {
+    const textarea = document.getElementById('resolution_notes');
+    let template = '';
+    
+    switch(type) {
+        case 'rescheduled':
+            template = `Rescheduled exam to resolve time overlap conflict.
+
+Original Schedule: [Original date/time]
+New Schedule: [New date/time]
+Reason: [Reason for rescheduling]
+Impact: [Any impact on students or invigilators]`;
+            break;
+            
+        case 'venue':
+            template = `Changed venue allocation to resolve venue conflict.
+
+Original Venue: [Original venue]
+New Venue: [New venue]
+Reason: [Reason for venue change]
+Capacity Check: [Confirm new venue can accommodate all students]
+Facilities: [Confirm required facilities are available]`;
+            break;
+            
+        case 'invigilator':
+            template = `Reassigned invigilator to resolve scheduling conflict.
+
+Original Assignment: [Original invigilator]
+New Assignment: [New invigilator]
+Reason: [Reason for reassignment]
+Workload Check: [Confirm workload limits are not exceeded]
+Availability: [Confirm new invigilator availability]`;
+            break;
+            
+        case 'manual':
+            template = `Manual resolution implemented for this conflict.
+
+Resolution Method: [Describe manual method]
+Steps Taken: [List steps taken]
+Verification: [How conflict was verified as resolved]
+Follow-up Required: [Any follow-up actions needed]`;
+            break;
+    }
+    
+    textarea.value = template;
+    textarea.focus();
+}
+</script>
+{% endblock %}

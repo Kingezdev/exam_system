@@ -1,0 +1,434 @@
+{% extends 'base.html' %}
+
+{% block title %}Exam Allocations - PLASU Exam System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-tasks me-2"></i>
+                Exam Allocations
+            </h2>
+            <a href="{% url 'allocation:create_allocation' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>
+                New Allocation
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-light">
+                <h6 class="mb-0">
+                    <i class="fas fa-filter me-2"></i>
+                    Filter Allocations
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="exam_session" class="form-label">Exam Session</label>
+                        <select name="exam_session" id="exam_session" class="form-select">
+                            <option value="">All Sessions</option>
+                            {% for session in exam_sessions %}
+                            <option value="{{ session.id }}" {% if request.GET.exam_session == session.id|stringformat:"s" %}selected{% endif %}>
+                                {{ session.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="status" class="form-label">Status</label>
+                        <select name="status" id="status" class="form-select">
+                            <option value="">All Status</option>
+                            <option value="pending" {% if request.GET.status == "pending" %}selected{% endif %}>Pending</option>
+                            <option value="confirmed" {% if request.GET.status == "confirmed" %}selected{% endif %}>Confirmed</option>
+                            <option value="completed" {% if request.GET.status == "completed" %}selected{% endif %}>Completed</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="venue" class="form-label">Venue</label>
+                        <select name="venue" id="venue" class="form-select">
+                            <option value="">All Venues</option>
+                            {% for venue in venues %}
+                            <option value="{{ venue.id }}" {% if request.GET.venue == venue.id|stringformat:"s" %}selected{% endif %}>
+                                {{ venue.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="date" class="form-label">Exam Date</label>
+                        <input type="date" name="date" id="date" class="form-control" value="{{ request.GET.date }}">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-search me-1"></i>
+                            Filter
+                        </button>
+                        <a href="{% url 'allocation:allocation_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-1"></i>
+                            Clear
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    All Allocations
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if allocations %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Exam</th>
+                                <th>Venue</th>
+                                <th>Date & Time</th>
+                                <th>Students</th>
+                                <th>Invigilators</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for allocation in allocations %}
+                            <tr class="{% if not allocation.is_confirmed %}table-warning{% elif allocation.is_completed %}table-success{% endif %}">
+                                <td>
+                                    <div>
+                                        <span class="badge bg-primary">{{ allocation.exam.course.code }}</span>
+                                        <br>
+                                        <strong>{{ allocation.exam.course.name }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ allocation.exam.get_exam_type_display }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <span class="badge bg-info">{{ allocation.venue.name }}</span>
+                                        <br>
+                                        <small class="text-muted">Capacity: {{ allocation.venue.capacity }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong>{{ allocation.exam.date|date:"M d, Y" }}</strong>
+                                        <br>
+                                        <small>{{ allocation.exam.start_time }} - {{ allocation.exam.end_time }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="text-center">
+                                        <strong>{{ allocation.student_allocations.count }}</strong>
+                                        {% if allocation.exam.enrolled_students %}
+                                            <br>
+                                            <small class="text-muted">of {{ allocation.exam.enrolled_students }}</small>
+                                        {% endif %}
+                                        {% if allocation.student_allocations.count > 0 %}
+                                        <div class="progress mt-1" style="height: 4px;">
+                                            <div class="progress-bar bg-success" style="width: 75%"></div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="text-center">
+                                        <span class="badge bg-success">{{ allocation.invigilator_assignments.count }}</span>
+                                        <br>
+                                        <small class="text-muted">Assigned</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if allocation.is_completed %}
+                                        <span class="badge bg-success">Completed</span>
+                                    {% elif allocation.is_confirmed %}
+                                        <span class="badge bg-info">Confirmed</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ allocation.created_at|date:"M d, Y" }}</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'allocation:allocation_detail' allocation.id %}" class="btn btn-sm btn-info" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'allocation:seating_plan' allocation.id %}" class="btn btn-sm btn-warning" title="Seating Plan">
+                                            <i class="fas fa-chair"></i>
+                                        </a>
+                                        <a href="#" class="btn btn-sm btn-success" title="Confirm">
+                                            <i class="fas fa-check"></i>
+                                        </a>
+                                        <a href="#" class="btn btn-sm btn-primary" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
+                    <h5>No Allocations Found</h5>
+                    <p class="text-muted">Start by creating your first exam allocation.</p>
+                    <a href="{% url 'allocation:create_allocation' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>
+                        Create First Allocation
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Total Allocations
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ allocations.count }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-tasks fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Confirmed
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ confirmed_allocations|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Students Allocated
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ total_students_allocated|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-user-graduate fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Pending
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ pending_allocations|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-clock fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Allocation Timeline -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>
+                    Allocation Timeline
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="allocationTimeline" width="400" height="150"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt me-2"></i>
+                    Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light border">
+                            <div class="card-body text-center">
+                                <i class="fas fa-magic fa-3x text-primary mb-3"></i>
+                                <h6>Auto Allocate</h6>
+                                <p class="small">Smart auto-allocation for pending exams</p>
+                                <a href="{% url 'allocation:auto_allocate' %}" class="btn btn-primary btn-sm">
+                                    Auto Allocate
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light border">
+                            <div class="card-body text-center">
+                                <i class="fas fa-check-double fa-3x text-success mb-3"></i>
+                                <h6>Confirm All</h6>
+                                <p class="small">Confirm all pending allocations</p>
+                                <button class="btn btn-success btn-sm" onclick="confirmAll()">
+                                    Confirm All
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light border">
+                            <div class="card-body text-center">
+                                <i class="fas fa-download fa-3x text-warning mb-3"></i>
+                                <h6>Export Report</h6>
+                                <p class="small">Download allocation summary report</p>
+                                <button class="btn btn-warning btn-sm" onclick="exportReport()">
+                                    Export PDF
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light border">
+                            <div class="card-body text-center">
+                                <i class="fas fa-sync fa-3x text-info mb-3"></i>
+                                <h6>Reallocate</h6>
+                                <p class="small">Reallocate students for conflicts</p>
+                                <a href="{% url 'allocation:reallocate' %}" class="btn btn-info btn-sm">
+                                    Reallocate
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Allocation Timeline Chart
+const ctx = document.getElementById('allocationTimeline').getContext('2d');
+const allocationTimeline = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [{
+            label: 'New Allocations',
+            data: [5, 8, 12, 7, 15, 10, 6],
+            borderColor: '#4e73df',
+            backgroundColor: 'rgba(78, 115, 223, 0.1)',
+            tension: 0.4
+        }, {
+            label: 'Confirmed Allocations',
+            data: [3, 6, 8, 5, 12, 8, 4],
+            borderColor: '#1cc88a',
+            backgroundColor: 'rgba(28, 200, 138, 0.1)',
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+function confirmAll() {
+    if (confirm('Are you sure you want to confirm all pending allocations?')) {
+        // Show loading indicator
+        const indicator = document.createElement('div');
+        indicator.className = 'alert alert-info position-fixed top-0 end-0 m-3';
+        indicator.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Confirming allocations...';
+        document.body.appendChild(indicator);
+        
+        setTimeout(() => {
+            indicator.remove();
+            alert('All pending allocations would be confirmed here');
+        }, 2000);
+    }
+}
+
+function exportReport() {
+    // Show loading indicator
+    const indicator = document.createElement('div');
+    indicator.className = 'alert alert-info position-fixed top-0 end-0 m-3';
+    indicator.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating report...';
+    document.body.appendChild(indicator);
+    
+    setTimeout(() => {
+        indicator.remove();
+        alert('Allocation report would be downloaded here (PDF functionality to be implemented)');
+    }, 2000);
+}
+</script>
+{% endblock %}
