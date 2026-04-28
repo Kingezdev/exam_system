@@ -28,12 +28,7 @@
                             <label for="{{ form.username.id_for_label }}" class="form-label">
                                 <i class="fas fa-user me-2"></i>Username or Email
                             </label>
-                            <div class="auth-input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-user"></i>
-                                </span>
-                                {{ form.username }}
-                            </div>
+                            {{ form.username }}
                             {% if form.username.errors %}
                                 <div class="text-danger small mt-1">
                                     {{ form.username.errors }}
@@ -45,12 +40,7 @@
                             <label for="{{ form.password.id_for_label }}" class="form-label">
                                 <i class="fas fa-lock me-2"></i>Password
                             </label>
-                            <div class="auth-input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-lock"></i>
-                                </span>
-                                {{ form.password }}
-                            </div>
+                            {{ form.password }}
                             {% if form.password.errors %}
                                 <div class="text-danger small mt-1">
                                     {{ form.password.errors }}
@@ -127,13 +117,26 @@ document.addEventListener('DOMContentLoaded', function() {
     width: 200%;
     height: 200%;
     background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
-    transform: rotate(45deg);
-    animation: shimmer 3s infinite;
 }
 
-@keyframes shimmer {
-    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-    100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+.auth-card .card-body {
+    padding: 2.5rem;
+}
+
+.auth-card .form-control {
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    width: 100%;
+    text-align: center;
+}
+
+.auth-card .form-control:focus {
+    border-color: #1e3c72;
+    box-shadow: 0 0 0 0.2rem rgba(30, 60, 114, 0.25);
+    outline: none;
 }
 
 .auth-input-group {
@@ -141,28 +144,64 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .auth-input-group .input-group-text {
-    background: rgba(30, 60, 114, 0.05);
-    border: 2px solid #e9ecef;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    border: 2px solid #1e3c72;
     border-right: none;
-    border-radius: 10px 0 0 10px;
-    color: #1e3c72;
+    border-radius: 12px 0 0 12px;
+    color: white;
     width: 50px;
     text-align: center;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .auth-input-group .form-control {
+    border: 2px solid #e9ecef;
     border-left: none;
-    border-radius: 0 10px 10px 0;
-    padding-left: 1.5rem;
+    border-radius: 0 12px 12px 0;
+    padding: 0.75rem 1rem 0.75rem 1.5rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
 }
 
 .auth-input-group .form-control:focus {
     border-color: #1e3c72;
     box-shadow: 0 0 0 0.2rem rgba(30, 60, 114, 0.25);
+    outline: none;
 }
 
 .auth-input-group .input-group-text + .form-control:focus {
     border-left: 2px solid #1e3c72;
+}
+
+.auth-input-group .form-control::placeholder {
+    color: #6c757d;
+    font-style: italic;
+}
+
+.auth-form-group {
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.auth-form-group label {
+    color: #1e3c72;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+    display: block;
+    text-align: center;
+}
+
+.auth-input-group:hover .input-group-text {
+    background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+}
+
+.auth-input-group:hover .form-control {
+    border-color: #d1d5db;
 }
 
 .form-check-input:checked {

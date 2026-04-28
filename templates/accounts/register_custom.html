@@ -28,48 +28,31 @@
                             <label for="{{ form.username.id_for_label }}" class="form-label">
                                 <i class="fas fa-user me-2"></i>Username
                             </label>
-                            <div class="auth-input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-user"></i>
-                                </span>
-                                {{ form.username }}
-                            </div>
+                            {{ form.username }}
                             {% if form.username.errors %}
                                 <div class="text-danger small mt-1">
                                     {{ form.username.errors }}
                                 </div>
                             {% endif %}
-                            <div class="form-text">Choose a unique username</div>
                         </div>
                         
                         <div class="auth-form-group">
                             <label for="{{ form.email.id_for_label }}" class="form-label">
                                 <i class="fas fa-envelope me-2"></i>Email Address
                             </label>
-                            <div class="auth-input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-envelope"></i>
-                                </span>
-                                {{ form.email }}
-                            </div>
+                            {{ form.email }}
                             {% if form.email.errors %}
                                 <div class="text-danger small mt-1">
                                     {{ form.email.errors }}
                                 </div>
                             {% endif %}
-                            <div class="form-text">We'll never share your email</div>
                         </div>
                         
                         <div class="auth-form-group">
                             <label for="{{ form.first_name.id_for_label }}" class="form-label">
                                 <i class="fas fa-id-card me-2"></i>First Name
                             </label>
-                            <div class="auth-input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-user"></i>
-                                </span>
-                                {{ form.first_name }}
-                            </div>
+                            {{ form.first_name }}
                             {% if form.first_name.errors %}
                                 <div class="text-danger small mt-1">
                                     {{ form.first_name.errors }}
@@ -81,12 +64,7 @@
                             <label for="{{ form.last_name.id_for_label }}" class="form-label">
                                 <i class="fas fa-id-card me-2"></i>Last Name
                             </label>
-                            <div class="auth-input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-user"></i>
-                                </span>
-                                {{ form.last_name }}
-                            </div>
+                            {{ form.last_name }}
                             {% if form.last_name.errors %}
                                 <div class="text-danger small mt-1">
                                     {{ form.last_name.errors }}
@@ -98,54 +76,36 @@
                             <label for="{{ form.role.id_for_label }}" class="form-label">
                                 <i class="fas fa-user-tag me-2"></i>Role
                             </label>
-                            <div class="auth-input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-user-tag"></i>
-                                </span>
-                                {{ form.role }}
-                            </div>
+                            {{ form.role }}
                             {% if form.role.errors %}
                                 <div class="text-danger small mt-1">
                                     {{ form.role.errors }}
                                 </div>
                             {% endif %}
-                            <div class="form-text">Select your role in the system</div>
                         </div>
                         
                         <div class="auth-form-group">
                             <label for="{{ form.password1.id_for_label }}" class="form-label">
                                 <i class="fas fa-lock me-2"></i>Password
                             </label>
-                            <div class="auth-input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-lock"></i>
-                                </span>
-                                {{ form.password1 }}
-                            </div>
+                            {{ form.password1 }}
                             {% if form.password1.errors %}
                                 <div class="text-danger small mt-1">
                                     {{ form.password1.errors }}
                                 </div>
                             {% endif %}
-                            <div class="form-text">Minimum 8 characters</div>
                         </div>
                         
                         <div class="auth-form-group">
                             <label for="{{ form.password2.id_for_label }}" class="form-label">
                                 <i class="fas fa-lock me-2"></i>Confirm Password
                             </label>
-                            <div class="auth-input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-lock"></i>
-                                </span>
-                                {{ form.password2 }}
-                            </div>
+                            {{ form.password2 }}
                             {% if form.password2.errors %}
                                 <div class="text-danger small mt-1">
                                     {{ form.password2.errors }}
                                 </div>
                             {% endif %}
-                            <div class="form-text">Enter the same password</div>
                         </div>
                         
                         <div class="auth-form-group">
@@ -317,28 +277,65 @@ function updatePasswordStrengthIndicator(strength) {
 }
 
 .auth-input-group .input-group-text {
-    background: rgba(30, 60, 114, 0.05);
-    border: 2px solid #e9ecef;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    border: 2px solid #1e3c72;
     border-right: none;
-    border-radius: 10px 0 0 10px;
-    color: #1e3c72;
+    border-radius: 12px 0 0 12px;
+    color: white;
     width: 50px;
     text-align: center;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.auth-input-group .form-control {
-    border-left: none;
-    border-radius: 0 10px 10px 0;
-    padding-left: 1.5rem;
+.auth-card .form-control {
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    width: 100%;
+    text-align: center;
+    background: white;
 }
 
 .auth-input-group .form-control:focus {
     border-color: #1e3c72;
     box-shadow: 0 0 0 0.2rem rgba(30, 60, 114, 0.25);
+    outline: none;
 }
 
 .auth-input-group .input-group-text + .form-control:focus {
     border-left: 2px solid #1e3c72;
+}
+
+.auth-input-group .form-control::placeholder {
+    color: #6c757d;
+    font-style: italic;
+}
+
+.auth-form-group {
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.auth-form-group label {
+    color: #1e3c72;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+    display: block;
+    text-align: center;
+}
+
+.auth-input-group:hover .input-group-text {
+    background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+}
+
+.auth-input-group:hover .form-control {
+    border-color: #d1d5db;
 }
 
 .form-check-input:checked {
