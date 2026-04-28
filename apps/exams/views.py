@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q, Count
 from django.http import JsonResponse
+from django.utils import timezone
 from datetime import datetime, time
 from .models import Exam, ExamSession, QuestionPaper, ExamConflict, ExamAttendance, ExamResult
 from .forms import ExamForm, ExamSessionForm, QuestionPaperForm, ExamResultForm
@@ -379,7 +380,42 @@ def student_exam_schedule(request):
         is_published=True
     ).select_related('course', 'exam_session').order_by('date', 'start_time')
     
-    return render(request, 'exams/student_schedule.html', {'exams': exams})
+    # Add additional context for each exam
+    for exam in exams:
+        # Check if student has allocation
+        if exam.allocation:
+            exam.has_allocation = exam.allocation.student_allocations.filter(student=request.user).exists()
+            if exam.has_allocation:
+                exam.student_seat = exam.allocation.student_allocations.get(student=request.user)
+            else:
+                exam.student_seat = None
+        else:
+            exam.has_allocation = False
+            exam.student_seat = None
+        
+        # Calculate days remaining
+        exam.days_remaining = (exam.date - timezone.now().date()).days
+        exam.today = exam.date == timezone.now().date()
+    
+    # Calculate statistics
+    today = timezone.now().date()
+    week_start = today - timezone.timedelta(days=today.weekday())
+    week_end = week_start + timezone.timedelta(days=6)
+    
+    week_exams = exams.filter(date__gte=week_start, date__lte=week_end).count()
+    today_exams = exams.filter(date=today).count()
+    
+    # Find next exam
+    next_exam = exams.filter(date__gte=today).first()
+    
+    context = {
+        'exams': exams,
+        'week_exams': week_exams,
+        'today_exams': today_exams,
+        'next_exam': next_exam,
+    }
+    
+    return render(request, 'exams/student_schedule.html', context)
 
 
 def check_exam_conflicts(exam):

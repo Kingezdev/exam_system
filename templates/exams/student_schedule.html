@@ -206,10 +206,8 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if exam.allocation and exam.allocation.student_allocations.filter(student=request.user).exists %}
-                                        {% with seat=exam.allocation.student_allocations.get(student=request.user) %}
-                                            <span class="badge bg-success">{{ seat.seat_number }}</span>
-                                        {% endwith %}
+                                    {% if exam.has_allocation and exam.student_seat %}
+                                        <span class="badge bg-success">{{ exam.student_seat.seat_number }}</span>
                                     {% else %}
                                         <span class="text-muted">TBA</span>
                                     {% endif %}
@@ -229,7 +227,7 @@
                                         <a href="#" class="btn btn-sm btn-info" title="View Details">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        {% if exam.allocation and exam.allocation.student_allocations.filter(student=request.user).exists %}
+                                        {% if exam.has_allocation %}
                                         <a href="#" class="btn btn-sm btn-success" title="View Seating Plan">
                                             <i class="fas fa-chair"></i>
                                         </a>
