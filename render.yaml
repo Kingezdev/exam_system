@@ -3,7 +3,7 @@ services:
   - type: web
     name: plasu-exam-system
     env: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
     startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
     healthCheckPath: /
     envVars:
@@ -28,11 +28,3 @@ services:
         generateValue: true
       - key: POSTGRES_VERSION
         value: 15
-
-  # Redis Service (for Celery)
-  - type: pserv
-    name: plasu-exam-redis
-    env: docker
-    envVars:
-      - key: REDIS_URL
-        value: redis://plasu-exam-redis:6379
