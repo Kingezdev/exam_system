@@ -274,6 +274,49 @@
                 width: 100% !important;
                 max-width: none !important;
             }
+        }
+        
+        /* Fix for mobile dropdown collapse issue */
+        @media (max-width: 768px) {
+            .sidebar .collapse {
+                transition: none !important;
+                height: auto !important;
+                display: none !important;
+            }
+            
+            .sidebar .collapse.show {
+                display: block !important;
+            }
+            
+            .sidebar .collapse.collapsing {
+                display: block !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+            
+            /* Prevent sidebar overlay from interfering with dropdown clicks */
+            .sidebar-overlay {
+                pointer-events: none;
+            }
+            
+            .sidebar-overlay.show {
+                pointer-events: auto;
+            }
+        }
+        
+        /* Extra small devices (phones in portrait) */
+        @media (max-width: 480px) {
+            .container-fluid {
+                padding-left: 10px;
+                padding-right: 10px;
+                width: 100% !important;
+                max-width: none !important;
+            }
+            
+            .main-content {
+                width: 100% !important;
+                max-width: none !important;
+            }
             
             .card-body {
                 padding: 1rem;
@@ -597,6 +640,30 @@
         if (window.innerWidth > 768) {
             sidebar.classList.remove('show');
             overlay.classList.remove('show');
+        }
+    });
+    
+    // Simple mobile dropdown fix - keep Bootstrap functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        // Only apply mobile fixes on mobile devices
+        if (window.innerWidth <= 768) {
+            // Handle dropdown clicks on mobile - just prevent sidebar close
+            const dropdownToggles = document.querySelectorAll('[data-bs-toggle="collapse"]');
+            
+            dropdownToggles.forEach(toggle => {
+                toggle.addEventListener('click', function(e) {
+                    // Prevent sidebar from closing when clicking dropdown
+                    e.stopPropagation();
+                });
+            });
+            
+            // Prevent clicks on dropdown content from closing the sidebar
+            const dropdownContents = document.querySelectorAll('.sidebar .collapse');
+            dropdownContents.forEach(content => {
+                content.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+            });
         }
     });
     </script>
