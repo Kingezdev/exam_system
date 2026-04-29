@@ -233,5 +233,72 @@ document.addEventListener('DOMContentLoaded', function() {
 .text-decoration-none:hover {
     transform: translateY(-1px);
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+        max-width: 100%;
+    }
+    
+    .auth-card {
+        max-width: 100%;
+        margin: 0 auto;
+    }
+    
+    .auth-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    .auth-card .form-control {
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+}
+
+@media (max-width: 576px) {
+    .container {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    
+    .auth-card .card-body {
+        padding: 1rem;
+    }
+    
+    .auth-form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .auth-form-group label {
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .btn {
+        font-size: 0.9rem;
+        padding: 0.75rem 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+    
+    .auth-card {
+        border-radius: 10px;
+    }
+    
+    .auth-card .card-body {
+        padding: 0.75rem;
+    }
+    
+    .auth-card .form-control {
+        padding: 0.5rem;
+        font-size: 14px;
+    }
+}
 </style>
 {% endblock %}

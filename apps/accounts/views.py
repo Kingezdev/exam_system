@@ -42,10 +42,7 @@ def login_view(request):
                 login(request, user)
                 messages.info(request, f'You are now logged in as {username}.')
                 return redirect('accounts:dashboard')
-            else:
-                messages.error(request, 'Invalid username or password.')
-        else:
-            messages.error(request, 'Invalid username or password.')
+        # Remove manual error messages - let Django's AuthenticationForm handle errors
     else:
         form = AuthenticationForm()
     return render(request, 'accounts/login_custom.html', {'form': form})

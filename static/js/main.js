@@ -1,6 +1,7 @@
 /**
  * PLASU Examination Management System - Main JavaScript
  * Contains common functionality used across the application
+ * Version: 1.0.1
  */
 
 // Global variables
@@ -13,8 +14,12 @@ window.PLASU = {
     },
     utils: {},
     components: {},
-    helpers: {}
+    helpers: {},
+    version: '1.0.1'
 };
+
+// Debug: Log that PLASU object is initialized
+console.log('PLASU JavaScript initialized, version:', PLASU.version);
 
 // Utility functions
 PLASU.utils = {
@@ -212,6 +217,30 @@ PLASU.utils = {
 // Component functions
 PLASU.components = {
     /**
+     * Initialize tooltips
+     */
+    initTooltips: function() {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            }
+        });
+    },
+
+    /**
+     * Initialize popovers
+     */
+    initPopovers: function() {
+        const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+        popoverTriggerList.map(function (popoverTriggerEl) {
+            if (typeof bootstrap !== 'undefined' && bootstrap.Popover) {
+                return new bootstrap.Popover(popoverTriggerEl);
+            }
+        });
+    },
+
+    /**
      * Initialize data tables
      */
     initDataTables: function() {
@@ -392,6 +421,9 @@ PLASU.components = {
     }
 };
 
+// Debug: Log that components are defined
+console.log('PLASU components initialized:', Object.keys(PLASU.components));
+
 // Helper functions
 PLASU.helpers = {
     /**
@@ -479,15 +511,75 @@ PLASU.helpers = {
 
 // Initialize on DOM load
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize components
-    PLASU.components.initTooltips();
-    PLASU.components.initPopovers();
-    PLASU.components.initDatePickers();
-    PLASU.components.initCharts();
-    PLASU.components.initFormValidation();
-    PLASU.components.initFileUploads();
-    PLASU.components.initSearch();
-    PLASU.components.initFilters();
+    // Check if PLASU.components exists and has the required functions
+    if (typeof PLASU !== 'undefined' && PLASU.components) {
+        // Initialize components with error handling
+        try {
+            if (typeof PLASU.components.initTooltips === 'function') {
+                PLASU.components.initTooltips();
+            }
+        } catch (error) {
+            console.warn('Error initializing tooltips:', error);
+        }
+        
+        try {
+            if (typeof PLASU.components.initPopovers === 'function') {
+                PLASU.components.initPopovers();
+            }
+        } catch (error) {
+            console.warn('Error initializing popovers:', error);
+        }
+        
+        try {
+            if (typeof PLASU.components.initDatePickers === 'function') {
+                PLASU.components.initDatePickers();
+            }
+        } catch (error) {
+            console.warn('Error initializing date pickers:', error);
+        }
+        
+        try {
+            if (typeof PLASU.components.initCharts === 'function') {
+                PLASU.components.initCharts();
+            }
+        } catch (error) {
+            console.warn('Error initializing charts:', error);
+        }
+        
+        try {
+            if (typeof PLASU.components.initFormValidation === 'function') {
+                PLASU.components.initFormValidation();
+            }
+        } catch (error) {
+            console.warn('Error initializing form validation:', error);
+        }
+        
+        try {
+            if (typeof PLASU.components.initFileUploads === 'function') {
+                PLASU.components.initFileUploads();
+            }
+        } catch (error) {
+            console.warn('Error initializing file uploads:', error);
+        }
+        
+        try {
+            if (typeof PLASU.components.initSearch === 'function') {
+                PLASU.components.initSearch();
+            }
+        } catch (error) {
+            console.warn('Error initializing search:', error);
+        }
+        
+        try {
+            if (typeof PLASU.components.initFilters === 'function') {
+                PLASU.components.initFilters();
+            }
+        } catch (error) {
+            console.warn('Error initializing filters:', error);
+        }
+    } else {
+        console.warn('PLASU.components not available');
+    }
     
     // Auto-hide notifications
     const notifications = document.querySelectorAll('.alert:not(.alert-permanent)');
